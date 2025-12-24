@@ -1,0 +1,32 @@
+{% extends "sneakpeek/base.html" %}
+{% block content %}
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">SneakPeek</h1>
+      <p class="page-subtitle">Bid on verified sneakers. Sell with confidence. Win drops in real time.</p>
+    </div>
+    <div class="page-actions">
+      <div class="input-wrap">
+        <span class="input-icon">⌕</span>
+        <input class="input" type="search" placeholder="Search Nike, Jordan, Adidas…" />
+      </div>
+      <a class="btn btn-primary" href="#">Browse Marketplace</a>
+    </div>
+  </header>
+
+  <div class="grid grid-2" style="margin-top: 18px;">
+    <div class="empty" style="text-align:left;">
+      <h2 class="empty-title">Ending soon</h2>
+      <p class="empty-text">Hot auctions closing in the next few hours.</p>
+      <a class="btn btn-outline" href="#">View ending soon</a>
+    </div>
+
+    <div class="empty" style="text-align:left;">
+      <h2 class="empty-title">Trending drops</h2>
+      <p class="empty-text">Most watched sneakers right now.</p>
+      <a class="btn btn-outline" href="#">View trending</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

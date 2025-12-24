@@ -1,0 +1,112 @@
+{% extends "sneakpeek/base.html" %}
+{% block content %}
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">My Bids</h1>
+      <p class="page-subtitle">Track your active bids, outbids, and wins in one place.</p>
+    </div>
+
+    <div class="page-actions">
+      <div class="input-wrap">
+        <span class="input-icon">⌕</span>
+        <input class="input" type="search" placeholder="Search by sneaker / seller…" />
+      </div>
+
+      <select class="select" aria-label="Filter bids">
+        <option>All</option>
+        <option>Active</option>
+        <option>Outbid</option>
+        <option>Winning</option>
+        <option>Won</option>
+        <option>Lost</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- Empty-state (keep this for now; later you can show it only when the list is empty) -->
+  <div class="empty">
+    <div class="empty-badge">⏱</div>
+    <h2 class="empty-title">No bids yet</h2>
+    <p class="empty-text">Browse the marketplace and place your first bid. Your activity will show up here.</p>
+    <a class="btn btn-primary" href="#">Browse Marketplace</a>
+  </div>
+
+  <!-- Example list (delete later when you wire dynamic data) -->
+  <div class="grid grid-2" style="margin-top: 18px;">
+    <article class="bid-card">
+      <div class="bid-media">
+        <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1200&q=80&auto=format&fit=crop" alt="Sneaker" />
+        <span class="chip chip-live">Live</span>
+      </div>
+
+      <div class="bid-body">
+        <div class="bid-top">
+          <div>
+            <h3 class="bid-title">Nike Air Max 90</h3>
+            <p class="muted">Size 10 • VNDS • Seller: KicksHub</p>
+          </div>
+          <span class="chip chip-winning">Winning</span>
+        </div>
+
+        <div class="bid-stats">
+          <div class="stat">
+            <span class="stat-k">Your bid</span>
+            <span class="stat-v">NPR 18,500</span>
+          </div>
+          <div class="stat">
+            <span class="stat-k">Current</span>
+            <span class="stat-v">NPR 18,500</span>
+          </div>
+          <div class="stat">
+            <span class="stat-k">Ends in</span>
+            <span class="stat-v">02:14:38</span>
+          </div>
+        </div>
+
+        <div class="bid-actions">
+          <button class="btn btn-outline" type="button">View Auction</button>
+          <button class="btn btn-primary" type="button">Increase Bid</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="bid-card">
+      <div class="bid-media">
+        <img src="https://images.unsplash.com/photo-1528701800489-20be9c7d6f8b?w=1200&q=80&auto=format&fit=crop" alt="Sneaker" />
+        <span class="chip chip-live">Live</span>
+      </div>
+
+      <div class="bid-body">
+        <div class="bid-top">
+          <div>
+            <h3 class="bid-title">Jordan 1 Retro High</h3>
+            <p class="muted">Size 9.5 • New • Seller: SneakStreet</p>
+          </div>
+          <span class="chip chip-outbid">Outbid</span>
+        </div>
+
+        <div class="bid-stats">
+          <div class="stat">
+            <span class="stat-k">Your bid</span>
+            <span class="stat-v">NPR 25,000</span>
+          </div>
+          <div class="stat">
+            <span class="stat-k">Current</span>
+            <span class="stat-v">NPR 26,000</span>
+          </div>
+          <div class="stat">
+            <span class="stat-k">Ends in</span>
+            <span class="stat-v">00:51:10</span>
+          </div>
+        </div>
+
+        <div class="bid-actions">
+          <button class="btn btn-outline" type="button">View Auction</button>
+          <button class="btn btn-primary" type="button">Reclaim Lead</button>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+{% endblock content %}
