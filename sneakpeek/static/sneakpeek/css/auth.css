@@ -1,270 +1,190 @@
-/* Base */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: Inter, system-ui, -apple-system, sans-serif;
-  background: #f6f7fb;
-  color: #111;
-}
-
-/* Layout */
+/* ===================== AUTH PAGE ===================== */
 .auth-page {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+    display: flex;
+    align-items: center;      /* vertical centering */
+    justify-content: center;  /* horizontal centering */
+    min-height: 100vh;        /* fill viewport height */
+    gap: 40px;
+    padding: 20px;
+    background: #f6f7fb;
+    flex-wrap: wrap;          /* allow stacking on small screens */
 }
 
+/* Form card */
 .auth-card {
-  padding: 56px 56px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  background: #ffffff;
+    flex: 1;
+    max-width: 450px;
+    padding: 40px 30px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
+/* Titles */
 .auth-title {
-  font-size: 2rem;
-  margin-top: 18px;
+    font-size: 2rem;
+    margin-top: 18px;
 }
-
 .auth-subtitle {
-  margin-top: 10px;
-  color: #555;
-  line-height: 1.4;
+    margin-top: 10px;
+    color: #555;
+    line-height: 1.4;
 }
 
-/* Brand */
-.brand {
-  text-decoration: none;
-  font-weight: 900;
-  font-size: 1.6rem;
-  letter-spacing: 0.2px;
-  display: inline-flex;
-  gap: 2px;
+/* Right visual (image + overlay) */
+.auth-visual {
+    flex: 1;
+    max-width: 400px;           /* limit width */
+    max-height: 500px;           /* prevent too tall image */
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    border-radius: 16px;
 }
 
-.brand-mark {
-  background: linear-gradient(90deg, #121212, #292614, #20221a);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* Sneaker image */
+.sneaker-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;  /* fits inside container without overflow */
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
 
-.brand-mark2 {
-  background: linear-gradient(90deg, #354227, #c3af4c, #c4e36e);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* Overlay text */
+.visual-overlay {
+    position: absolute;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
-/* Role hover dropdown */
-.role {
-  position: relative;
-  width: fit-content;
-  margin-top: 18px;
-    padding-bottom: 12px; /* invisible hover buffer */
-
-}
-
-.role-btn {
-  border: 1px solid #e5e5e5;
-  background: #fff;
-  padding: 10px 12px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 600;
-  color: #222;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  transition: transform .15s ease, box-shadow .15s ease;
-}
-
-.role-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 26px rgba(0,0,0,0.08);
-}
-
-.caret { opacity: 0.65; }
-
-.role-menu {
-  position: absolute;
-  top: 48px;
-  left: 0;
-  width: 220px;
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 12px;
-  padding: 8px;
-  box-shadow: 0 18px 45px rgba(0,0,0,0.12);
-  display: none;
-  z-index: 10;
-}
-
-/* Hover behavior: show menu when hovering role area */
-.role:hover .role-menu,
-.role-menu:hover {
-  display: block;
-}
-
-.role-item {
-  display: block;
-  padding: 10px 10px;
-  border-radius: 10px;
-  text-decoration: none;
-  color: #111;
-  font-weight: 600;
-  transition: background 0.2s ease;
-}
-
-.role-item:hover {
-  background: rgba(37, 117, 252, 0.10);
-}
-
-/* Form */
+/* FORM ELEMENTS */
 .auth-form {
-  margin-top: 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 }
 
 .label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #222;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+    font-size: 0.95rem;
+    color: #333;
+    display: block;
 }
 
 .input {
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid #e6e6e6;
-  outline: none;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
-  background: #fff;
+    margin-top: 8px;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #e6e6e6;
+    background: #fafafa;
+    outline: none;
+    box-sizing: border-box;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .input:focus {
-  border-color: rgba(37,117,252,0.55);
-  box-shadow: 0 0 0 4px rgba(37,117,252,0.15);
+    border-color: #7a5cff;
+    box-shadow: 0 6px 18px rgba(122,92,255,0.08);
+    background: #fff;
 }
 
 .grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
 }
 
 .row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .checkbox {
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
-  font-weight: 500;
-  color: #444;
-  font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #555;
 }
 
-.link {
-  color: #2575fc;
-  text-decoration: none;
-  font-weight: 600;
-}
-.link:hover { text-decoration: underline; }
-
-/* Primary button */
 .btn-primary {
-  margin-top: 8px;
-  padding: 12px 16px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 800;
-  color: #fff;
-  background: linear-gradient(135deg, #6a11cb, #2575fc);
-  box-shadow: 0 10px 30px rgba(37,117,252,0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: inline-block;
+    padding: 12px 18px;
+    background: linear-gradient(135deg,#6b46ff,#d633ff);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 6px;
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 40px rgba(37,117,252,0.45);
+    filter: brightness(0.95);
 }
 
 .switch {
-  margin-top: 10px;
-  color: #444;
-  font-weight: 500;
+    margin-top: 8px;
+    color: #555;
+    font-size: 0.95rem;
 }
 
-/* Right visual */
-.auth-visual {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  padding: 48px;
-  overflow: hidden;
+.link {
+    color: #6b46ff;
+    text-decoration: none;
 }
 
-.visual-overlay {
-  width: 100%;
-  max-width: 420px;
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.22);
-  backdrop-filter: blur(12px);
-  border-radius: 16px;
-  padding: 18px 18px;
-  color: #fff;
+.link:hover { text-decoration: underline; }
+
+/* BRAND */
+.brand { text-decoration: none; color: #222; font-weight: 800; }
+.brand-mark { color: #111; font-weight: 900; }
+.brand-mark2 { color: #6b46ff; margin-left: 4px; }
+
+/* ROLE DROPDOWN */
+.role { position: relative; display: inline-block; margin-top: 12px; }
+.role-btn {
+    background: transparent; border: 1px solid #eee; padding: 8px 10px; border-radius: 999px; cursor: pointer;
+}
+.role-menu { display: none; position: absolute; top: 110%; left: 0; background: white; box-shadow: 0 8px 20px rgba(0,0,0,0.06); border-radius: 10px; overflow: hidden; z-index: 30; }
+.role-item { display: block; padding: 10px 14px; color: #333; text-decoration: none; }
+.role-item:hover { background: #f5f5ff; }
+.role:hover .role-menu { display: block; }
+
+/* Small screens tweaks */
+@media (max-width: 700px) {
+    .grid { grid-template-columns: 1fr; }
+    .auth-card { padding: 28px 20px; }
 }
 
-.visual-overlay h2 {
-  font-size: 1.6rem;
-  font-weight: 900;
-}
+/* utility */
+.hidden { display: none !important; }
 
-.visual-overlay p {
-  margin-top: 8px;
-  opacity: 0.9;
-  line-height: 1.4;
-}
-
-/* Different images for pages (change these paths to your Django static images later) */
-.visual-login {
-  background:
-    linear-gradient(135deg, rgba(0,0,0,0.35), rgba(37,117,252,0.25)),
-    url("sneaker-login.jpg");
-  background-size: cover;
-  background-position: center;
-}
-
-.visual-signup {
-  background:
-    linear-gradient(135deg, rgba(0,0,0,0.35), rgba(106,17,203,0.25)),
-    url("sneaker-signup.jpg");
-  background-size: cover;
-  background-position: center;
-}
-
-/* Mobile */
+/* ===================== RESPONSIVE ===================== */
 @media (max-width: 900px) {
-  .auth-page {
-    grid-template-columns: 1fr;
-  }
-  .auth-visual {
-    min-height: 280px;
-    order: -1;
-  }
-  .auth-card {
-    padding: 38px 22px;
-  }
-  .grid {
-    grid-template-columns: 1fr;
-  }
+    .auth-page {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .auth-visual {
+        width: 100%;
+        max-height: 300px; /* smaller height for mobile */
+    }
+
+    .sneaker-img {
+        height: 100%;
+        object-fit: cover; /* cover for mobile screens */
+    }
 }

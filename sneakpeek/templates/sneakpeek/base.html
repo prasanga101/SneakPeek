@@ -4,39 +4,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% if title %}
-        <title>{{ title }} - SneakPeek</title>
-    {% else %}
-        <title>SneakPeek</title>
-    {% endif %}
+
+    <title>{% if title %}{{ title }} - SneakPeek{% else %}SneakPeek{% endif %}</title>
+
     <link rel="stylesheet" href="{% static 'sneakpeek/css/style.css' %}">
     <link rel="stylesheet" href="{% static 'sneakpeek/css/auth.css' %}">
-    <script src="{% static 'sneakpeek/js/main.js' %}" defer></script>
 </head>
 <body>
-    <nav class="navbar">
+
+<nav class="navbar">
+    <!-- LEFT -->
     <div class="nav-left">
         <a href="{% url 'SneakPeek-home' %}" class="logo">SneakPeek</a>
     </div>
 
-    <div class="nav-right" id="navMenu">
-        <a href="{% url 'SneakPeek-home' %}">Home</a>
-        <a href="{% url 'SneakPeek-marketplace' %}">Marketplace</a>
-     <!------   <a href="{% url 'SneakPeek-sell' %}">Sell</a>-->
-        <a href="{% url 'SneakPeek-bids' %}">My Bids</a>
-        <a href="{%url 'SneakPeek-Login'%}" class="btn-outline">Login</a>
-        <a href="{%url 'SneakPeek-Signup'%}" class="btn-solid">Sign Up</a>
-    </div>
+    <!-- RIGHT -->
+    <div class="nav-right">
+        <ul class="nav-list">
+            <li class="{% if request.path == '/' %}active{% endif %}">
+                <a href="{% url 'SneakPeek-home' %}">Home</a>
+            </li>
 
-    <div class="hamburger" id="hamburger">
-        <span></span>
-        <span></span>
-        <span></span>
+            <li class="{% if request.path == '/marketplace/' %}active{% endif %}">
+                <a href="{% url 'SneakPeek-marketplace' %}">Marketplace</a>
+            </li>
+
+            {%if is_logged_in %}
+
+            <li class="{% if request.path == '/bids/' %}active{% endif %}">
+                <a href="{% url 'SneakPeek-bids' %}">My Bids</a>
+            </li>
+            {%else%}
+            <li class="{% if request.path == '/Login/' %}active{% endif %}">
+                <a href="{% url 'SneakPeek-Login' %}">My Bids</a>
+
+            </li>
+            {%endif%}
+         {%if is_logged_in %}
+        <li class="{%if request.path == '/Logout/' %} active {%endif%}"><a class="btn btn-outline-light ms-2" href="{%url 'SneakPeek-logout'%}">Logout</a></li>
+        {%else%}
+          <li class="{%if request.path == '/Login/' %} active {%endif%}"><a class="nav-link" href="{%url 'SneakPeek-Login'%}">Login</a></li>
+        {%endif%}
+
+        {%if not is_logged_in%}
+        <li class="{%if request.path == '/Signup/' %} active {%endif%}"><a class="btn btn-outline-light ms-2" href="{%url 'sign'%}">Sign Up</a></li>
+        {%endif%}
+        </ul>
     </div>
 </nav>
-    <div class="container">
-        {% block content %}
-        {% endblock content %}
-    </div>
+
+<main class="container">
+    {% block content %}{% endblock %}
+</main>
+
 </body>
 </html>

@@ -1,32 +1,60 @@
-{% extends "sneakpeek/base.html" %}
+{% extends "base.html" %}
+{% load static %}
 {% block content %}
-<section class="page">
-  <header class="page-header">
-    <div>
-      <h1 class="page-title">SneakPeek</h1>
-      <p class="page-subtitle">Bid on verified sneakers. Sell with confidence. Win drops in real time.</p>
-    </div>
-    <div class="page-actions">
-      <div class="input-wrap">
-        <span class="input-icon">⌕</span>
-        <input class="input" type="search" placeholder="Search Nike, Jordan, Adidas…" />
-      </div>
-      <a class="btn btn-primary" href="#">Browse Marketplace</a>
-    </div>
-  </header>
 
-  <div class="grid grid-2" style="margin-top: 18px;">
-    <div class="empty" style="text-align:left;">
-      <h2 class="empty-title">Ending soon</h2>
-      <p class="empty-text">Hot auctions closing in the next few hours.</p>
-      <a class="btn btn-outline" href="#">View ending soon</a>
+<!-- HERO SECTION -->
+<section class="home-hero">
+    <div class="hero-content">
+        <h1 class="hero-title">SneakPeek Marketplace</h1>
+        <p class="hero-subtitle">Bid on verified sneakers. Sell with confidence. Win drops in real-time.</p>
+        <div class="hero-actions">
+            <input class="hero-search" type="search" placeholder="Search Nike, Jordan, Adidas…">
+            <a href="{% url 'SneakPeek-marketplace' %}" class="btn btn-primary">Browse Marketplace</a>
+        </div>
     </div>
-
-    <div class="empty" style="text-align:left;">
-      <h2 class="empty-title">Trending drops</h2>
-      <p class="empty-text">Most watched sneakers right now.</p>
-      <a class="btn btn-outline" href="#">View trending</a>
-    </div>
-  </div>
 </section>
+
+<!-- FEATURED SNEAKERS GRID -->
+<section class="home-grid">
+    <!-- Featured Sneaker Card 1 -->
+    <div class="card featured">
+        <img src="{% static 'sneakpeek/images/sneaker1.jpg' %}" alt="Sneaker 1">
+        <div class="card-info">
+            <h3>Nike Air Jordan 1</h3>
+            <p>Classic red/white edition. Bidding ends in 3 hours.</p>
+            <a href="#" class="btn-outline">Place Bid</a>
+        </div>
+    </div>
+
+    <!-- Featured Sneaker Card 2 -->
+    <div class="card featured">
+        <img src="{% static 'sneakpeek/images/sneaker2.jpg' %}" alt="Sneaker 2">
+        <div class="card-info">
+            <h3>Adidas Yeezy Boost</h3>
+            <p>Trending drop. Limited edition. Don't miss out!</p>
+            <a href="#" class="btn-outline">Place Bid</a>
+        </div>
+    </div>
+
+    <!-- Featured Sneaker Card 3 -->
+    <div class="card featured">
+        <img src="{% static 'sneakpeek/images/sneaker3.jpg' %}" alt="Sneaker 3">
+        <div class="card-info">
+            <h3>Jordan Retro 4</h3>
+            <p>Exclusive colorway. Auction ends in 5 hours.</p>
+            <a href="#" class="btn-outline">Place Bid</a>
+        </div>
+    </div>
+
+    <!-- Featured Sneaker Card 4 -->
+    <div class="card featured">
+        <img src="{% static 'sneakpeek/images/sneaker4.jpg' %}" alt="Sneaker 4">
+        <div class="card-info">
+            <h3>Nike Dunk Low</h3>
+            <p>High demand sneaker. Be the first to bid!</p>
+            <a href="#" class="btn-outline">Place Bid</a>
+        </div>
+    </div>
+</section>
+
 {% endblock %}

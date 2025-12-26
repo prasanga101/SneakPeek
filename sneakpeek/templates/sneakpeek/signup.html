@@ -1,88 +1,23 @@
-{% extends 'sneakpeek/base.html' %}
+{% extends 'base.html' %}
+{% load static %}
 {% block content %}
- <div class="auth-page">
-    <!-- LEFT: FORM -->
-    <div class="auth-card">
-      <a class="brand" href="#">
-        <span class="brand-mark">Sneak</span><span class="brand-mark2">Peek</span>
-      </a>
+<div class="auth-page">
+  <div class="auth-card" style="text-align:center;">
+    <a class="brand" href="#">
+      <span class="brand-mark">Sneak</span><span class="brand-mark2">Peek</span>
+    </a>
 
-      <h1 class="auth-title">Create your account</h1>
-      <p class="auth-subtitle">Join SneakPeek and start bidding today.</p>
+    <h1 class="auth-title">Sign Up</h1>
+    <p class="auth-subtitle">Choose your account type to get started</p>
 
-      <!-- ROLE DROPDOWN (HOVER) -->
-      <div class="role">
-        <button type="button" class="role-btn">
-          Sign up as: <span id="roleLabel">Buyer</span>
-          <span class="caret">▾</span>
-        </button>
-
-        <div class="role-menu">
-          <a href="#" class="role-item" data-role="buyer">Buyer</a>
-          <a href="#" class="role-item" data-role="seller">Seller</a>
-        </div>
-      </div>
-
-      <form class="auth-form" action="#" method="post">
-        <input type="hidden" name="role" id="roleInput" value="buyer" />
-
-        <div class="grid">
-          <label class="label">
-            First name
-            <input class="input" type="text" name="first_name" placeholder="Prasanga" required />
-          </label>
-
-          <label class="label">
-            Last name
-            <input class="input" type="text" name="last_name" placeholder="Uprety" required />
-          </label>
-        </div>
-
-        <label class="label">
-          Email
-          <input class="input" type="email" name="email" placeholder="you@example.com" required />
-        </label>
-
-        <label class="label">
-          Password
-          <input class="input" type="password" name="password" placeholder="Create a strong password" required />
-        </label>
-
-        <label class="label">
-          Confirm password
-          <input class="input" type="password" name="confirm_password" placeholder="Repeat password" required />
-        </label>
-
-        <button class="btn-primary" type="submit">Create Account</button>
-
-        <p class="switch">
-          Already have an account?
-          <a class="link" href="login.html">Login</a>
-        </p>
-      </form>
+    <div style="display:flex; flex-direction:column; gap:20px; margin-top:30px;">
+      <a href="{% url 'SneakPeek-Signup' %}" class="btn-primary" style="padding:15px; font-size:18px;">Signup as Buyer</a>
+      <a href="{% url 'SneakPeek-SignupSeller' %}" class="btn-secondary" style="padding:15px; font-size:18px;">Signup as Seller</a>
     </div>
 
-    <!-- RIGHT: IMAGE -->
-    <div class="auth-visual visual-signup">
-      <div class="visual-overlay">
-        <h2>Sell with confidence.</h2>
-        <p>Build your profile, list sneakers, and reach bidders fast.</p>
-      </div>
-    </div>
+    <p style="margin-top:30px;">
+      Already have an account? <a class="link" href="{% url 'SneakPeek-Login' %}">Login</a>
+    </p>
   </div>
-
-  <script>
-    const roleItems = document.querySelectorAll(".role-item");
-    const roleLabel = document.getElementById("roleLabel");
-    const roleInput = document.getElementById("roleInput");
-
-    roleItems.forEach(item => {
-      item.addEventListener("click", (e) => {
-        e.preventDefault();
-        const r = item.dataset.role;
-        roleLabel.textContent = r.charAt(0).toUpperCase() + r.slice(1);
-        roleInput.value = r;
-      });
-    });
-  </script>
-{% endblock content %}
+</div>
+{% endblock %}

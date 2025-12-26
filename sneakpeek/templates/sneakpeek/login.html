@@ -1,5 +1,8 @@
-{% extends 'sneakpeek/base.html' %}
+{% extends 'base.html' %}
+{% load static %}
 {% block content %}
+
+
 <div class="auth-page">
     <!-- LEFT: FORM -->
     <div class="auth-card">
@@ -12,10 +15,10 @@
 
       <!-- ROLE DROPDOWN (HOVER) -->
       <div class="role">
-        <button type="button" class="role-btn">
+        <!-- <button type="button" class="role-btn">
           Login as: <span id="roleLabel">Buyer</span>
           <span class="caret">▾</span>
-        </button>
+        </button> -->
 
         <div class="role-menu">
           <!-- These are anchors just for UI; later you can wire them to set a hidden role -->
@@ -24,18 +27,29 @@
         </div>
       </div>
 
-      <form class="auth-form" action="#" method="post">
+      <form class="auth-form" action="{% url 'SneakPeek-Login' %}" method="post">
+      {% if error  %}
+      <div style="color:black;background-color:red;">
+      {{message}}
+      </div>
+      {%endif%}
+      {% if not error %}
+      <div style="color:black;background-color:green;">
+        {{messagee}}
+      </div>
+      {%endif%}
+        {% csrf_token %}
         <!-- Later in Django, set this value based on selection -->
         <input type="hidden" name="role" id="roleInput" value="buyer" />
 
         <label class="label">
           Email
-          <input class="input" type="email" name="email" placeholder="you@example.com" required />
+          <input class="input" type="email" name="email" value="{{Email}}" placeholder="you@example.com" required />
         </label>
 
         <label class="label">
           Password
-          <input class="input" type="password" name="password" placeholder="••••••••" required />
+          <input class="input" type="password" name="password" value="{{Password}}" placeholder="••••••••" required />
         </label>
 
         <div class="row">
@@ -50,13 +64,14 @@
 
         <p class="switch">
           Don’t have an account?
-          <a class="link" href="signup.html">Sign up</a>
+          <a class="link" href="/Signup">Sign up</a>
         </p>
       </form>
     </div>
 
     <!-- RIGHT: IMAGE -->
     <div class="auth-visual visual-login">
+       <img src="{% static 'sneakpeek/images/sneak.png' %}" alt="Sneaker Image" class="sneaker-img">
       <div class="visual-overlay">
         <h2>Bid smarter.</h2>
         <p>Exclusive drops, real-time bidding, trusted sellers.</p>

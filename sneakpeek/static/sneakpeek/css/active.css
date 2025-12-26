@@ -1,0 +1,7 @@
+
+/* ACTIVE NAV ITEM */
+.nav-list li.active a {
+    background-color: #d633ff;
+    color: #ffffff;
+    font-weight: 600;
+}

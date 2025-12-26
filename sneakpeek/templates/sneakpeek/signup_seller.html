@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <a class="brand" href="#">
+      <span class="brand-mark">Sneak</span><span class="brand-mark2">Peek</span>
+    </a>
+
+    <h1 class="auth-title">Create Seller Account</h1>
+    <p class="auth-subtitle">Build your profile, list sneakers, and reach bidders fast.</p>
+
+    <form class="auth-form" action="{% url 'SneakPeek-SignupSeller' %}" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <label class="label">Full Name
+        <input class="input" type="text" name="seller_name" required />
+      </label>
+      <label class="label">Email
+        <input class="input" type="email" name="seller_email" required />
+      </label>
+      <label class="label">Password
+        <input class="input" type="password" name="seller_password" required />
+      </label>
+      <label class="label">Phone
+        <input class="input" type="tel" name="seller_phone" required />
+      </label>
+      <label class="label">Address
+        <input class="input" type="text" name="seller_address" required />
+      </label>
+
+      <!-- Document Upload -->
+      <label class="label">Citizenship / PAN
+        <input class="input" type="file" name="seller_id_image" accept="image/*" capture="environment" required />
+      </label>
+
+      <!-- Live Photo Capture -->
+      <label class="label">Live Photo</label>
+      <div style="text-align:center; margin-bottom:10px;">
+        <video id="camera" autoplay playsinline style="width:100%;border-radius:8px; display:none;"></video>
+        <img id="preview" style="width:100%;border-radius:8px; display:none; margin-top:10px;" />
+      </div>
+
+      <div style="display:flex; gap:10px; margin-bottom:10px;">
+        <button type="button" class="btn-secondary" onclick="openCamera()" style="flex:1;">Open Camera</button>
+        <button type="button" class="btn-secondary" onclick="capturePhoto()" style="flex:1;">Capture Photo</button>
+      </div>
+
+      <input type="hidden" name="seller_live_photo" id="sellerLivePhoto" required />
+
+      <label class="label">Business name (optional)
+        <input class="input" type="text" name="seller_business" />
+      </label>
+
+      <button class="btn-primary" type="submit" style="margin-top:20px;">Create Account</button>
+    </form>
+
+    <p class="switch">
+      Already have an account? <a class="link" href="{% url 'SneakPeek-Login' %}">Login</a>
+    </p>
+  </div>
+</div>
+
+<script>
+  const video = document.getElementById("camera");
+  const preview = document.getElementById("preview");
+  const liveInput = document.getElementById("sellerLivePhoto");
+  let stream = null;
+
+  // Step 1: Open camera
+  function openCamera() {
+    if (!stream) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(s => {
+          stream = s;
+          video.srcObject = stream;
+          video.style.display = "block";
+          preview.style.display = "none";
+        })
+        .catch(() => alert("Camera access denied"));
+    }
+  }
+
+  // Step 2: Capture photo
+  function capturePhoto() {
+    if (!stream) return alert("Camera is not opened yet!");
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d").drawImage(video, 0, 0);
+
+    const data = canvas.toDataURL("image/jpeg");
+    liveInput.value = data;
+
+    preview.src = data;
+    preview.style.display = "block";
+
+    // Stop camera
+    stream.getTracks().forEach(track => track.stop());
+    stream = null;
+    video.style.display = "none";
+  }
+</script>
+{% endblock %}

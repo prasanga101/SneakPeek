@@ -1,119 +1,181 @@
-/* RESET */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Inter, system-ui, -apple-system, sans-serif;
-}
-
-/* NAVBAR */
+/* ===================== NAVBAR ===================== */
 .navbar {
     height: 64px;
     padding: 0 32px;
     background: #ffffff;
     border-bottom: 1px solid #e5e5e5;
-
     display: flex;
     align-items: center;
     justify-content: space-between;
-
-    position: sticky;
-    top: 0;
-    z-index: 1000;
 }
 
 /* LOGO */
 .logo {
     font-size: 1.6rem;
     font-weight: 800;
-    letter-spacing: 0.5px;
     text-decoration: none;
-
-    background: linear-gradient(90deg, #121212, #292614, #c4e36e);
+    background: linear-gradient(90deg, #111, #555, #c4e36e);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-
-    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.logo:hover {
-    transform: scale(1.05);
-    opacity: 0.9;
+/* NAV LIST */
+.nav-list {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 22px;
 }
 
 /* LINKS */
-.nav-right {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-}
-
-.nav-right a {
+.nav-list li a {
     text-decoration: none;
     color: #333;
-    font-weight: 500;
-    transition: color 0.2s ease;
-}
-
-.nav-right a:hover {
-    color: #000;
-}
-
-/* BUTTONS */
-.btn-solid {
     padding: 8px 18px;
-    border-radius: 8px;
-    font-weight: 600;
-    color: #fff;
-    text-decoration: none;
-
-    background: linear-gradient(135deg, #e3e1e5, #ecebea);
-    box-shadow: 0 6px 18px white;
-
+    border-radius: 999px;
+    font-weight: 500;
     transition: all 0.25s ease;
 }
 
-.btn-outline {
-    padding: 8px 16px;
-    border: 1px solid #000;
-    border-radius: 6px;
-    color: #000;
+.nav-list li a:hover {
+    background: rgba(214, 51, 255, 0.15);
 }
 
-/* HAMBURGER */
-.hamburger {
-    display: none;
-    flex-direction: column;
-    gap: 5px;
-    cursor: pointer;
+.btn-signup {
+    background: linear-gradient(135deg, #d633ff, #b82bd9);
+    color: white !important;
+    font-weight: 600;
 }
 
-.hamburger span {
-    width: 24px;
-    height: 3px;
-    background: #000;
+/* ===================== HERO SECTION ===================== */
+.home-hero {
+    position: relative;
+    background: linear-gradient(135deg, rgba(37,117,252,0.5), rgba(106,17,203,0.3)),
+                url("../images/hero-bg.jpg") no-repeat center/cover;
+    border-radius: 16px;
+    padding: 80px 40px;
+    margin: 20px 0;
+    color: white;
 }
 
-/* MOBILE */
-@media (max-width: 768px) {
-    .nav-right {
-        position: absolute;
-        top: 64px;
-        right: 0;
-        background: #fff;
-        width: 100%;
-        flex-direction: column;
-        align-items: center;
-        padding: 20px 0;
-        display: none;
-        border-bottom: 1px solid #ddd;
+.hero-content {
+    max-width: 650px;
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 900;
+    line-height: 1.2;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    margin-top: 12px;
+    opacity: 0.9;
+}
+
+.hero-actions {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.hero-search {
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: none;
+    flex: 1;
+    min-width: 250px;
+}
+
+/* ===================== GRID SECTION ===================== */
+.home-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 40px;
+}
+
+/* Generic Card */
+.card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
+
+/* Buttons in card */
+.card .btn-outline {
+    display: inline-block;
+    padding: 10px 18px;
+    margin-top: 12px;
+    border: 1px solid #2575fc;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #2575fc;
+    font-weight: 600;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.card .btn-outline:hover {
+    background: #2575fc;
+    color: white;
+}
+
+/* Featured Sneaker Card */
+.card.featured {
+    padding: 0;
+    overflow: hidden;
+}
+
+.card.featured img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.card.featured:hover img {
+    transform: scale(1.05);
+}
+
+.card.featured .card-info {
+    padding: 16px;
+}
+
+.card.featured h3 {
+    font-weight: 700;
+}
+
+.card.featured p {
+    color: #555;
+    font-size: 0.95rem;
+    margin-top: 6px;
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 900px) {
+    .home-hero {
+        padding: 60px 20px;
     }
 
-    .nav-right.active {
-        display: flex;
+    .hero-title {
+        font-size: 2.2rem;
     }
 
-    .hamburger {
-        display: flex;
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .home-grid {
+        grid-template-columns: 1fr;
     }
 }
