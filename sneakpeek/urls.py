@@ -3,6 +3,8 @@ from . import views
 #current directory bata view import garcha
 urlpatterns = [
     path('',views.home , name ='SneakPeek-home'),
+    # path('bid/<int:sneaker_id>/', views.place_bid, name='place_bid'),
+
     path('Login/', views.loginn , name ='SneakPeek-Login'),
     path('SignupBuyer/', views.signuppB , name ='SneakPeek-Signup'),
     path('Signup/', views.signup , name ='sign'),
@@ -13,4 +15,11 @@ urlpatterns = [
     path('Logout/' , views.logoutt , name ='SneakPeek-logout'),
     #path('about/', views.about , name ='SneakPeek-about'),
     #path('contact/', views.contact , name ='SneakPeek-contact'),
+    path('signup_successful/', views.SignSuccess , name ='SneakPeek-signup_successful'),
+
+    path('sneaker/<int:sneaker_id>/bid/', views.place_bid_view, name='place_bid'),
+    path('sneaker/<int:sneaker_id>/bid/submit/', views.submit_bid, name='submit_bid'),
+    # urls.py
+    path('sneaker/<int:sneaker_id>/result/', views.bidding_result, name='bidding_result'),
+
 ]

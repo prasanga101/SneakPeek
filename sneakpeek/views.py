@@ -1,18 +1,98 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
 from django.contrib.auth.hashers import make_password,check_password
 from django.shortcuts import render, redirect
-from .models import SignUpBuyer, SignUpSeller
-
+from .models import SignUpBuyer, SignUpSeller,Sneaker, Bid
+from django.contrib import messages
 
 import base64
 import uuid
 from django.core.files.base import ContentFile
 
+
+def bidding_result(request, sneaker_id):
+    sneaker = get_object_or_404(Sneaker, id=sneaker_id)
+    highest_bid = sneaker.bids.order_by('-amount').first()
+    return render(request, 'bidding_result.html', {
+        'sneaker': sneaker,
+        'highest_bid': highest_bid
+    })
+
+def place_bid_view(request, sneaker_id):
+    if not request.session.get('is_logged_in'):
+        messages.warning(request, "You must log in to place a bid.")
+        return redirect('/Login')
+
+    sneaker = get_object_or_404(Sneaker, id=sneaker_id)
+    bids = sneaker.bids.order_by('-amount')
+
+    # Pass the logged-in user's email to template
+    current_user_email = request.session.get('signup_email', '')
+
+    context = {
+        'sneaker': sneaker,
+        'bids': bids,
+        'is_logged_in': True,
+        'current_user_email': current_user_email  # <-- Pass to template
+    }
+    return render(request, 'place_bid.html', context)
+
+
+def submit_bid(request, sneaker_id):
+    if request.method != "POST":
+        return redirect('place_bid', sneaker_id=sneaker_id)
+
+    # Check if user is logged in
+    is_logged_in = request.session.get('is_logged_in', False)
+    user_role = request.session.get('role', None)
+    buyer_email = request.session.get('signup_email', None)
+
+    if not is_logged_in or user_role != 'buyer':
+        mess='You must be logged in as a buyer to place a bid.'
+        request.session['mess_seller']=mess
+        return redirect('/Login')
+
+    sneaker = get_object_or_404(Sneaker, id=sneaker_id)
+
+    # Safely get the buyer
+    try:
+        buyer = get_object_or_404(SignUpBuyer, Email=buyer_email)
+    except Exception:
+        messages.error(request, "Buyer account not found. Please log in again.")
+        request.session.flush()
+        return redirect('/Login')
+
+    # Get bid amount and validate
+    amount_str = request.POST.get("amount")
+    try:
+        amount = float(amount_str)
+        if amount <= 0:
+            raise ValueError
+    except (ValueError, TypeError):
+        messages.error(request, "Please enter a valid positive bid amount.")
+        return redirect('place_bid', sneaker_id=sneaker_id)
+
+    # Create bid
+    Bid.objects.create(sneaker=sneaker, buyer=buyer, amount=amount)
+    messages.success(request, f"Your bid of Rs {amount} has been placed successfully!")
+
+    return redirect('place_bid', sneaker_id=sneaker_id)
+
+
+
 # Create your views here.
 def home(request):
-   
-    return render(request, 'home.html')
+    sneak = Sneaker.objects.filter(is_featured=True).order_by('-id')
+    context = {
+        'sneakers': sneak,
+        'is_logged_in': request.session.get('is_logged_in', False)  # pass login status
+    }
+    return render(request, 'home.html', context)
+
+
+# def place_bid(request, sneaker_id):
+#     sneaker = get_object_or_404(Sneaker, id=sneaker_id)
+#     return render(request, 'bid_page.html', {'sneaker': sneaker})
 
 def logoutt(request):
     request.session.flush()  # Clear all session data
@@ -95,6 +175,7 @@ def loginn(request):
         'Email': request.session.get('signup_email',''),
         'Password': request.session.get('signup_password',''),
         'messagee': request.session.get('signup_message',''),
+        'SellerErrorMessage': request.session.get('mess_seller',''),
         'error': False
     })
 
@@ -114,6 +195,7 @@ def signuppB(request):
         # return render(request,'login.html',{'Email':email,'Password':password,'mess':'Account created successfully, please login','error':'False'})
         request.session['signup_email']=email
         request.session['signup_password']=password
+        request.session['role'] = 'buyer'
         request.session['signup_message']='Account created successfully, please login'
         return redirect('/Login')
         
@@ -161,20 +243,57 @@ def signuppS(request):
         # Save session info (optional)
         request.session['signup_email'] = email
         request.session['signup_password'] = password
-       
+        request.session['role'] = 'seller'
 
        # After creating seller account
         request.session['signup_message'] = 'Your account is submitted for verification. You will be notified once approved.'
-        return render(request, 'signup_seller.html', {'success': True})
+        # return render(request, 'signup_successful', {'success': True})
+        return redirect('/signup_successful')
 
     return render(request, 'signup_seller.html')
 
+def SignSuccess(request):
+    message = request.session.get('signup_message', '')
+
+    # Optional: remove message after showing once
+    request.session.pop('signup_message', None)
+
+    return render(request, 'signup_successful.html', {
+        'message': message
+    })
+
 def bids(request):
+    # Check if user is logged in
+    is_logged_in = request.session.get('is_logged_in', False)
+    role = request.session.get('role', None)
+
+    if not is_logged_in or role != 'buyer':
+        messages.warning(request, "You must log in as a buyer to view your bids.")
+        return redirect('/Login')
+
+    buyer_email = request.session.get('signup_email', None)
+    if not buyer_email:
+        messages.error(request, "Session expired. Please log in again.")
+        request.session.flush()
+        return redirect('/Login')
+
+    # Get buyer safely
+    buyer = SignUpBuyer.objects.filter(Email=buyer_email).first()
+    if not buyer:
+        messages.error(request, "Buyer account not found. Please log in again.")
+        request.session.flush()
+        return redirect('/Login')
+
+    # Get all bids of this buyer
+    user_bids = Bid.objects.filter(buyer=buyer).order_by('-id')
+
     context = {
-        'is_logged_in': request.session.get('is_logged_in')
+        'is_logged_in': True,
+        'bids': user_bids,
     }
-   
     return render(request, 'bids.html', context)
+
+
 
 def sell(request):
     return render(request, 'sell.html', {'title': 'SneakPeek Sell'})

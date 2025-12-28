@@ -24,89 +24,60 @@
     </div>
   </header>
 
-  <!-- Empty-state (keep this for now; later you can show it only when the list is empty) -->
+  {% if bids %}
+  <div class="grid grid-2" style="margin-top: 18px;">
+    {% for bid in bids %}
+    <article class="bid-card">
+      <div class="bid-media">
+        <img src="{{ bid.sneaker.image.url }}" alt="{{ bid.sneaker.name }}" />
+        {% if bid.amount == bid.sneaker.bids.order_by('-amount').first.amount %}
+          <span class="chip chip-winning">Winning</span>
+        {% else %}
+          <span class="chip chip-outbid">Outbid</span>
+        {% endif %}
+      </div>
+
+      <div class="bid-body">
+        <div class="bid-top">
+          <div>
+            <h3 class="bid-title">{{ bid.sneaker.name }}</h3>
+            <p class="muted">Size {{ bid.sneaker.size }} • Seller: {{ bid.sneaker.seller.Name }}</p>
+          </div>
+        </div>
+
+        <div class="bid-stats">
+          <div class="stat">
+            <span class="stat-k">Your bid</span>
+            <span class="stat-v">NPR {{ bid.amount }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-k">Current</span>
+            <span class="stat-v">NPR {{ bid.sneaker.bids.order_by('-amount').first.amount }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-k">Ends in</span>
+            <span class="stat-v">{{ bid.sneaker.end_time|timesince }} remaining</span>
+          </div>
+        </div>
+
+        <div class="bid-actions">
+          <a href="{% url 'place_bid' bid.sneaker.id %}" class="btn btn-outline">View Auction</a>
+          {% if bid.amount != bid.sneaker.bids.order_by('-amount').first.amount %}
+            <a href="{% url 'place_bid' bid.sneaker.id %}" class="btn btn-primary">Increase Bid</a>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
   <div class="empty">
     <div class="empty-badge">⏱</div>
     <h2 class="empty-title">No bids yet</h2>
     <p class="empty-text">Browse the marketplace and place your first bid. Your activity will show up here.</p>
-    <a class="btn btn-primary" href="#">Browse Marketplace</a>
+    <a class="btn btn-primary" href="{% url 'SneakPeek-home' %}">Browse Marketplace</a>
   </div>
+  {% endif %}
 
-  <!-- Example list (delete later when you wire dynamic data) -->
-  <div class="grid grid-2" style="margin-top: 18px;">
-    <article class="bid-card">
-      <div class="bid-media">
-        <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1200&q=80&auto=format&fit=crop" alt="Sneaker" />
-        <span class="chip chip-live">Live</span>
-      </div>
-
-      <div class="bid-body">
-        <div class="bid-top">
-          <div>
-            <h3 class="bid-title">Nike Air Max 90</h3>
-            <p class="muted">Size 10 • VNDS • Seller: KicksHub</p>
-          </div>
-          <span class="chip chip-winning">Winning</span>
-        </div>
-
-        <div class="bid-stats">
-          <div class="stat">
-            <span class="stat-k">Your bid</span>
-            <span class="stat-v">NPR 18,500</span>
-          </div>
-          <div class="stat">
-            <span class="stat-k">Current</span>
-            <span class="stat-v">NPR 18,500</span>
-          </div>
-          <div class="stat">
-            <span class="stat-k">Ends in</span>
-            <span class="stat-v">02:14:38</span>
-          </div>
-        </div>
-
-        <div class="bid-actions">
-          <button class="btn btn-outline" type="button">View Auction</button>
-          <button class="btn btn-primary" type="button">Increase Bid</button>
-        </div>
-      </div>
-    </article>
-
-    <article class="bid-card">
-      <div class="bid-media">
-        <img src="https://images.unsplash.com/photo-1528701800489-20be9c7d6f8b?w=1200&q=80&auto=format&fit=crop" alt="Sneaker" />
-        <span class="chip chip-live">Live</span>
-      </div>
-
-      <div class="bid-body">
-        <div class="bid-top">
-          <div>
-            <h3 class="bid-title">Jordan 1 Retro High</h3>
-            <p class="muted">Size 9.5 • New • Seller: SneakStreet</p>
-          </div>
-          <span class="chip chip-outbid">Outbid</span>
-        </div>
-
-        <div class="bid-stats">
-          <div class="stat">
-            <span class="stat-k">Your bid</span>
-            <span class="stat-v">NPR 25,000</span>
-          </div>
-          <div class="stat">
-            <span class="stat-k">Current</span>
-            <span class="stat-v">NPR 26,000</span>
-          </div>
-          <div class="stat">
-            <span class="stat-k">Ends in</span>
-            <span class="stat-v">00:51:10</span>
-          </div>
-        </div>
-
-        <div class="bid-actions">
-          <button class="btn btn-outline" type="button">View Auction</button>
-          <button class="btn btn-primary" type="button">Reclaim Lead</button>
-        </div>
-      </div>
-    </article>
-  </div>
 </section>
 {% endblock content %}

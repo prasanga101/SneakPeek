@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+/* ===== BID PAGE STYLES ===== */
+.bid-page {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    font-family: Arial, sans-serif;
+}
+
+.bid-header {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.bid-header img {
+    width: 300px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.bid-info h2 {
+    margin-bottom: 10px;
+}
+
+.bid-info p {
+    color: #555;
+    line-height: 1.6;
+}
+
+/* ===== TIMER ===== */
+#countdown {
+    margin-top: 15px;
+    padding: 12px;
+    width: fit-content;
+    background: #f4f6f8;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+/* ===== BIDS ===== */
+.bids-section {
+    margin-top: 40px;
+}
+
+.bids-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.bids-section li {
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    background: #f9fafb;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    font-weight: 500;
+}
+
+/* Winner highlight */
+.bids-section .winner {
+    background-color: #ffe8a1;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* ===== BID FORM ===== */
+.bid-form {
+    margin-top: 30px;
+    display: flex;
+    gap: 10px;
+}
+
+.bid-form input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+.bid-form button {
+    padding: 12px 20px;
+    background: #000;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.bid-form button:hover {
+    background: #333;
+}
+
+/* Disabled styles */
+.bid-form input:disabled {
+    background-color: #e0e0e0;
+    color: #888;
+    cursor: not-allowed;
+}
+
+.bid-form button:disabled {
+    background-color: #999;
+    color: #fff;
+    cursor: not-allowed;
+}
+</style>
+
+<div class="bid-page">
+
+    <!-- HEADER -->
+    <div class="bid-header">
+        <img src="{{ sneaker.image.url }}" alt="{{ sneaker.name }}">
+
+        <div class="bid-info">
+            <h2>{{ sneaker.name }}</h2>
+            <p>{{ sneaker.description|safe }}</p>
+
+            <!-- Countdown -->
+            <div id="countdown">
+                ⏳ Time left: <span id="time"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIDS / WINNER -->
+    <div class="bids-section">
+        <h3>🔥 Current Bids</h3>
+        <ul id="bids-list">
+            {% for bid in bids %}
+                <li>
+                    <span>{{ bid.buyer.FName }}</span>
+                    <span>Rs {{ bid.amount }}</span>
+                </li>
+            {% empty %}
+                <li>No bids yet. Be the first!</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- BID FORM -->
+    <form method="POST" action="{% url 'submit_bid' sneaker.id %}" class="bid-form">
+        {% csrf_token %}
+        <input type="number" step="10" name="amount" placeholder="Enter your bid amount" required>
+        <button type="submit">Place Bid</button>
+    </form>
+
+</div>
+
+<script>
+// Countdown timer
+const endTime = new Date("{{ sneaker.end_time|date:'c' }}").getTime();
+const bidInput = document.querySelector('.bid-form input[name="amount"]');
+const bidButton = document.querySelector('.bid-form button');
+const bidsList = document.getElementById('bids-list');
+
+// Winner data from Django
+const winnerData = {% if bids|length > 0 %} {
+    buyer: "{{ bids.0.buyer.FName }}",
+    amount: "{{ bids.0.amount }}"
+} {% else %} null {% endif %};
+
+const timer = setInterval(() => {
+    const now = new Date().getTime();
+    const distance = endTime - now;
+
+    if (distance <= 0) {
+        clearInterval(timer);
+        document.getElementById("time").innerHTML = "Bidding Ended";
+
+        // Disable form
+        if (bidInput) bidInput.disabled = true;
+        if (bidButton) {
+            bidButton.disabled = true;
+            bidButton.innerText = "Bidding Closed";
+        }
+
+        // Show winner
+        if (winnerData) {
+            bidsList.innerHTML = `<li class="winner">🏆 Winner: ${winnerData.buyer} — Rs ${winnerData.amount}</li>`;
+
+            // Redirect winner (if current user is the winner)
+           {% if current_user_email == bids.0.buyer.Email %}
+
+                setTimeout(() => {
+                    window.location.href = "{% url 'bidding_result' sneaker.id %}";
+                }, 3000); // wait 3 seconds before redirect
+            {% endif %}
+
+        } else {
+            bidsList.innerHTML = `<li class="winner">No bids were placed for this sneaker.</li>`;
+        }
+
+    } else {
+        // Update countdown
+        const hours = Math.floor(distance / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        document.getElementById("time").innerHTML = `${hours}h ${minutes}m ${seconds}s`;
+    }
+}, 1000);
+</script>
+
+
+{% endblock %}

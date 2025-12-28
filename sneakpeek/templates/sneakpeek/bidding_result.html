@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+/* ===== BIDDING RESULT STYLES ===== */
+.result-page {
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 40px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+}
+
+.result-page h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #111;
+}
+
+.result-card {
+    background: #f4f6f8;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+}
+
+.result-card p {
+    font-size: 1.2rem;
+    margin: 10px 0;
+}
+
+.result-card p span {
+    font-weight: bold;
+    color: #000;
+}
+
+.no-bids {
+    font-size: 1.2rem;
+    color: #777;
+    margin: 30px 0;
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 30px;
+    padding: 12px 25px;
+    background: #000;
+    color: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.3s;
+}
+
+.back-link:hover {
+    background: #333;
+}
+</style>
+
+<div class="result-page">
+    <h2>Bidding Closed for {{ sneaker.name }}</h2>
+
+    {% if highest_bid %}
+    <div class="result-card">
+        <p>🏆 Winner: <span>{{ highest_bid.buyer.FName }}</span></p>
+        <p>💰 Amount: <span>Rs {{ highest_bid.amount }}</span></p>
+    </div>
+    {% else %}
+    <p class="no-bids">No bids were placed for this sneaker.</p>
+    {% endif %}
+
+    <a href="{% url 'SneakPeek-home' %}" class="back-link">← Back to Marketplace</a>
+</div>
+
+{% endblock %}

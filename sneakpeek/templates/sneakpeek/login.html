@@ -38,6 +38,9 @@
         {{messagee}}
       </div>
       {%endif%}
+       <div style="color:black;background-color:red;">
+      {{SellerErrorMessage}}
+      </div>
         {% csrf_token %}
         <!-- Later in Django, set this value based on selection -->
         <input type="hidden" name="role" id="roleInput" value="buyer" />
