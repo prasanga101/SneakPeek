@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.core.mail import send_mail
 from .models import SignUpSeller
-from .models import Sneaker
+from .models import Sneaker, ProductRequest
 
 @admin.register(SignUpSeller)
 class SellerAdmin(admin.ModelAdmin):
@@ -35,4 +35,25 @@ You can now log in and start listing sneakers.
 
 
 admin.site.register(Sneaker)
+
+
+
+@admin.register(ProductRequest)
+class ProductRequestAdmin(admin.ModelAdmin):
+    list_display = ('name', 'seller', 'status', 'created_at')
+    actions = ['approve_products']
+
+    def approve_products(self, request, queryset):
+        for req in queryset.filter(status='pending'):
+            Sneaker.objects.create(
+                name=req.name,
+                description=req.description,
+                image=req.image,
+                end_time=req.end_time,
+                is_featured=True
+            )
+            req.status = 'approved'
+            req.save()
+
+    approve_products.short_description = "Approve selected products"
 

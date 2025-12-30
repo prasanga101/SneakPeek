@@ -68,6 +68,16 @@
     <div class="result-card">
         <p>🏆 Winner: <span>{{ highest_bid.buyer.FName }}</span></p>
         <p>💰 Amount: <span>Rs {{ highest_bid.amount }}</span></p>
+
+        {% if payment_form %}
+<form action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST">
+    {{ payment_form|safe }}
+    <button type="submit" class="back-link" style="background:green;">
+        Pay with eSewa
+    </button>
+</form>
+{% endif %}
+
     </div>
     {% else %}
     <p class="no-bids">No bids were placed for this sneaker.</p>

@@ -29,10 +29,14 @@
                 <a href="{% url 'SneakPeek-marketplace' %}">Marketplace</a>
             </li>
 
-            {%if is_logged_in %}
-
+            {%if is_logged_in and role == "buyer"%}
+          
             <li class="{% if request.path == '/bids/' %}active{% endif %}">
                 <a href="{% url 'SneakPeek-bids' %}">My Bids</a>
+            </li>
+            {%elif is_logged_in and role == "seller"%}
+             <li class="{% if request.path == '/addproduct/' %}active{% endif %}">
+                <a href="{% url 'SneakPeek-product' %}">Add Product</a>
             </li>
             {%else%}
             <li class="{% if request.path == '/Login/' %}active{% endif %}">

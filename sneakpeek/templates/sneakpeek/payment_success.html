@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+.payment-container {
+    max-width: 500px;
+    margin: 80px auto;
+    text-align: center;
+    padding: 40px;
+    background: #f0fff4;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 128, 0, 0.1);
+    font-family: 'Arial', sans-serif;
+}
+
+.payment-container h1 {
+    font-size: 3rem;
+    color: #28a745;
+    margin-bottom: 20px;
+}
+
+.payment-container p {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.payment-container a.button {
+    display: inline-block;
+    padding: 12px 30px;
+    background: #28a745;
+    color: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+.payment-container a.button:hover {
+    background: #218838;
+}
+</style>
+
+<div class="payment-container">
+    <h1>🎉 Payment Successful!</h1>
+    <p>Your payment has been completed successfully. Thank you for your purchase!</p>
+    <a href="{% url 'SneakPeek-home' %}" class="button">Back to Marketplace</a>
+</div>
+
+{% endblock %}

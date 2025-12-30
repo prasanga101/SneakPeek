@@ -1,22 +1,109 @@
 from django.shortcuts import render, get_object_or_404
 
 from django.contrib.auth.hashers import make_password,check_password
-from django.shortcuts import render, redirect
-from .models import SignUpBuyer, SignUpSeller,Sneaker, Bid
+from django.shortcuts import render, redirect ,HttpResponse
+from .models import SignUpBuyer, SignUpSeller,Sneaker, Bid,Payment,ProductRequest
 from django.contrib import messages
 
 import base64
 import uuid
 from django.core.files.base import ContentFile
+from django_esewa import EsewaPayment
+
+def seller_products(request):
+    if not request.session.get('is_logged_in') or request.session.get('role') != 'seller':
+        return redirect('/Login')
+
+    seller = SignUpSeller.objects.get(id=request.session.get('seller_id'))
+
+    products = ProductRequest.objects.filter(seller=seller).order_by('-created_at')
+
+    return render(request, 'seller_products.html', {
+        'products': products,
+        'is_logged_in': True,
+        'role': 'seller'
+   })
+
+
+def payment_success(request):
+    transaction_uuid = request.GET.get("transaction_uuid")
+    total_amount = request.GET.get("total_amount")
+
+    try:
+        payment = Payment.objects.get(product_id=transaction_uuid)
+        payment.status = "SUCCESS"
+        payment.save()
+    except Payment.DoesNotExist:
+        return HttpResponse("Payment record not found")
+
+    return render(request, "payment_success.html")
+
+def payment_failure(request):
+    return render(request, "payment_failure.html")
+
+
+def add_product_request(request):
+    if not request.session.get('is_logged_in') or request.session.get('role') != 'seller':
+        return redirect('/Login')
+
+    seller_id = request.session.get('seller_id')
+    seller = get_object_or_404(SignUpSeller, id=seller_id)
+
+    if request.method == "POST":
+        ProductRequest.objects.create(
+            seller=seller,
+            name=request.POST.get("name"),
+            description=request.POST.get("description"),
+            image=request.FILES.get("image"),
+            end_time=request.POST.get("end_time"),
+        )
+        messages.success(request, "Product sent for admin approval.")
+        return redirect('/')
+
+    return render(request, 'add_product.html')
 
 
 def bidding_result(request, sneaker_id):
     sneaker = get_object_or_404(Sneaker, id=sneaker_id)
     highest_bid = sneaker.bids.order_by('-amount').first()
-    return render(request, 'bidding_result.html', {
-        'sneaker': sneaker,
-        'highest_bid': highest_bid
+
+    payment_form = None
+
+    if highest_bid:
+        # Only winner can pay
+        if request.session.get('signup_email') == highest_bid.buyer.Email:
+
+            transaction_uuid = f"SNK-{sneaker.id}-{uuid.uuid4().hex[:8]}"
+
+            # Save payment record
+            Payment.objects.create(
+                email=highest_bid.buyer.Email,
+                amount=float(highest_bid.amount),
+                product_id=transaction_uuid,
+                status="PENDING"
+            )
+
+            payment = EsewaPayment(
+                product_code="EPAYTEST",   # test merchant
+                success_url="http://127.0.0.1:8000/payment/success/",
+                failure_url="http://127.0.0.1:8000/payment/failure/",
+                amount=float(highest_bid.amount),
+                tax_amount=0,
+                total_amount=float(highest_bid.amount),
+                product_service_charge=0,
+                product_delivery_charge=0,
+                transaction_uuid=transaction_uuid,
+            )
+
+            payment.create_signature()
+            payment_form = payment.generate_form()
+
+    return render(request, "bidding_result.html", {
+        "sneaker": sneaker,
+        "highest_bid": highest_bid,
+        "payment_form": payment_form
     })
+
 
 def place_bid_view(request, sneaker_id):
     if not request.session.get('is_logged_in'):
@@ -53,13 +140,16 @@ def submit_bid(request, sneaker_id):
         return redirect('/Login')
 
     sneaker = get_object_or_404(Sneaker, id=sneaker_id)
+    print(sneaker)
 
     # Safely get the buyer
     try:
         buyer = get_object_or_404(SignUpBuyer, Email=buyer_email)
     except Exception:
-        messages.error(request, "Buyer account not found. Please log in again.")
-        request.session.flush()
+        # messages.error(request, "Buyer account not found. Please log in again.")
+        # mes='Buyer account not found. Please log in again.'
+        request.session['mes']='Buyer account not found. Please log in again.'
+        # request.session.flush()
         return redirect('/Login')
 
     # Get bid amount and validate
@@ -85,7 +175,8 @@ def home(request):
     sneak = Sneaker.objects.filter(is_featured=True).order_by('-id')
     context = {
         'sneakers': sneak,
-        'is_logged_in': request.session.get('is_logged_in', False)  # pass login status
+        'is_logged_in': request.session.get('is_logged_in', False),
+        'role': request.session.get('role')
     }
     return render(request, 'home.html', context)
 
@@ -149,6 +240,7 @@ def loginn(request):
             if check_password(ppassword, user.Password):
                 request.session['signup_name'] = user.FName
                 request.session['is_logged_in'] = True
+                request.session['signup_email'] = user.Email
                 request.session['role'] = 'buyer'
                 return redirect('/')  # buyer dashboard
             else:

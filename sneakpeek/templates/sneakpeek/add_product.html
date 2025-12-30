@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+/* ===== ADD PRODUCT PAGE (INLINE CSS) ===== */
+
+.addp-page {
+  display: flex;
+  min-height: 85vh;
+  background: #f6f7fb;
+}
+
+.addp-card {
+  flex: 1;
+  max-width: 520px;
+  margin: auto;
+  background: #ffffff;
+  padding: 40px 36px;
+  border-radius: 18px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.08);
+}
+
+.addp-brand {
+  font-size: 26px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.addp-brand span:first-child { color: #111; }
+.addp-brand span:last-child { color: #6c63ff; }
+
+.addp-title {
+  margin-top: 20px;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.addp-subtitle {
+  margin-bottom: 25px;
+  color: #666;
+  font-size: 14px;
+}
+
+.addp-form .label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.addp-form .input,
+.addp-form textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  margin-bottom: 18px;
+  outline: none;
+}
+
+.addp-form .input:focus,
+.addp-form textarea:focus {
+  border-color: #6c63ff;
+}
+
+.addp-form textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.addp-btn {
+  width: 100%;
+  background: #6c63ff;
+  color: #fff;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.addp-btn:hover {
+  background: #574ee6;
+}
+
+.addp-note {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #777;
+  text-align: center;
+}
+
+/* RIGHT VISUAL */
+.addp-visual {
+  flex: 1;
+  background: linear-gradient(135deg, #6c63ff, #3f3cff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 30px 0 0 30px;
+}
+
+.addp-visual-content {
+  text-align: center;
+  color: white;
+  padding: 40px;
+}
+
+.addp-visual-content img {
+  max-width: 300px;
+  margin-bottom: 20px;
+}
+
+.addp-visual-content h2 {
+  font-size: 26px;
+  margin-bottom: 10px;
+}
+
+.addp-visual-content p {
+  opacity: 0.9;
+  font-size: 14px;
+}
+
+/* MOBILE */
+@media (max-width: 900px) {
+  .addp-page {
+    flex-direction: column;
+  }
+  .addp-visual {
+    border-radius: 0;
+    padding: 30px 0;
+  }
+}
+</style>
+
+<div class="addp-page">
+
+  <!-- LEFT FORM -->
+  <div class="addp-card">
+    <a href="{% url 'SneakPeek-home' %}" class="addp-brand">
+      <span>Sneak</span><span>Peek</span>
+    </a>
+
+    <h1 class="addp-title">Request New Product</h1>
+    <p class="addp-subtitle">
+      Seller submission → Admin approval → Marketplace live
+    </p>
+
+    <form class="addp-form" method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <label class="label">Sneaker Name</label>
+      <input class="input" type="text" name="name"
+             placeholder="Nike Air Jordan 1" required>
+
+      <label class="label">Description</label>
+      <textarea name="description"
+        placeholder="Condition, size, authenticity, box details..."
+        required></textarea>
+
+      <label class="label">Sneaker Image</label>
+      <input class="input" type="file" name="image" accept="image/*" required>
+
+      <label class="label">Bidding End Time</label>
+      <input class="input" type="datetime-local" name="end_time" required>
+
+      <button class="addp-btn" type="submit">
+        Send for Admin Approval
+      </button>
+
+      <p class="addp-note">
+        You’ll be notified once admin approves your product.
+      </p>
+    </form>
+  </div>
+
+  <!-- RIGHT VISUAL -->
+  <div class="addp-visual">
+    <div class="addp-visual-content">
+      <img src="{% static 'sneakpeek/images/sneak.png' %}" alt="Sneaker">
+      <h2>Sell Smarter</h2>
+      <p>
+        Verified listings. Trusted buyers.<br>
+        Real-time competitive bidding.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+{% endblock content %}
