@@ -1,219 +1,282 @@
+/* ===================== GLOBAL ===================== */
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: #f7f8fb;
+    color: #111;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+a { color: inherit; }
+img { display: block; }
+
+/* Optional: page container if you use one */
+.container {
+    width: min(1200px, 92%);
+    margin: 0 auto;
+}
+
 /* ===================== NAVBAR ===================== */
 .navbar {
-    height: 64px;
+    height: 68px;
     padding: 0 32px;
-    background: #ffffff;
-    border-bottom: 1px solid #e5e5e5;
+    background: rgba(255,255,255,0.92);
+    border-bottom: 1px solid #ececec;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(10px);
 }
 
-/* LOGO */
 .logo {
-    font-size: 1.6rem;
-    font-weight: 800;
+    font-size: 1.7rem;
+    font-weight: 900;
     text-decoration: none;
-    background: linear-gradient(90deg, #111, #555, #c4e36e);
+    background: linear-gradient(90deg, #111, #555, #d633ff);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-/* NAV LIST */
 .nav-list {
     list-style: none;
     display: flex;
     align-items: center;
-    gap: 22px;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
 }
 
-/* LINKS */
 .nav-list li a {
     text-decoration: none;
-    color: #333;
-    padding: 8px 18px;
+    color: #222;
+    padding: 9px 16px;
     border-radius: 999px;
-    font-weight: 500;
-    transition: all 0.25s ease;
+    font-weight: 600;
+    transition: all 0.22s ease;
 }
 
 .nav-list li a:hover {
-    background: rgba(214, 51, 255, 0.15);
+    background: rgba(214, 51, 255, 0.12);
+    transform: translateY(-1px);
 }
 
 .btn-signup {
     background: linear-gradient(135deg, #d633ff, #b82bd9);
     color: white !important;
-    font-weight: 600;
+    font-weight: 700;
+    box-shadow: 0 10px 22px rgba(214, 51, 255, 0.22);
+}
+
+.btn-signup:hover {
+    background: linear-gradient(135deg, #c92df2, #a925c7);
 }
 
 /* ===================== HERO SECTION ===================== */
 .home-hero {
     position: relative;
-    background: linear-gradient(135deg, rgba(37,117,252,0.5), rgba(106,17,203,0.3)),
-                url("../images/hero-bg.jpg") no-repeat center/cover;
-    border-radius: 16px;
-    padding: 80px 40px;
-    margin: 20px 0;
+    background:
+        radial-gradient(1200px 500px at 20% 10%, rgba(214, 51, 255, 0.35), transparent 60%),
+        radial-gradient(1200px 500px at 80% 20%, rgba(37,117,252,0.35), transparent 60%),
+        linear-gradient(135deg, rgba(37,117,252,0.55), rgba(106,17,203,0.25)),
+        url("../images/hero-bg.jpg") no-repeat center/cover;
+    border-radius: 18px;
+    padding: 88px 44px;
+    margin: 22px auto;
+    width: min(1200px, 92%);
     color: white;
+    overflow: hidden;
+    box-shadow: 0 22px 60px rgba(0,0,0,0.15);
 }
 
-.hero-content {
-    max-width: 650px;
-}
+.hero-content { max-width: 680px; }
 
 .hero-title {
-    font-size: 3rem;
-    font-weight: 900;
-    line-height: 1.2;
+    font-size: 3.2rem;
+    font-weight: 950;
+    line-height: 1.12;
+    margin: 0 0 10px;
+    letter-spacing: -0.5px;
 }
 
 .hero-subtitle {
-    font-size: 1.2rem;
-    margin-top: 12px;
-    opacity: 0.9;
+    font-size: 1.15rem;
+    margin-top: 10px;
+    opacity: 0.92;
+    line-height: 1.6;
 }
 
 .hero-actions {
-    margin-top: 24px;
+    margin-top: 22px;
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
+    align-items: center;
 }
 
 .hero-search {
-    padding: 12px 16px;
-    border-radius: 12px;
-    border: none;
+    padding: 13px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.22);
     flex: 1;
-    min-width: 250px;
+    min-width: 260px;
+    background: rgba(255,255,255,0.16);
+    color: #fff;
+    outline: none;
+    backdrop-filter: blur(10px);
+}
+
+.hero-search::placeholder {
+    color: rgba(255,255,255,0.78);
+}
+
+/* If you have .btn.btn-primary from your base CSS, this enhances it */
+.btn.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 18px;
+    border-radius: 14px;
+    text-decoration: none;
+    font-weight: 800;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: rgba(255,255,255,0.18);
+    color: white;
+    transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.btn.btn-primary:hover {
+    transform: translateY(-2px);
+    background: rgba(255,255,255,0.26);
 }
 
 /* ===================== GRID SECTION ===================== */
 .home-grid {
+    width: min(1200px, 92%);
+    margin: 32px auto 70px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
-    margin-top: 40px;
-    align-items: stretch; /* all cards same height */
+    grid-template-columns: repeat(3, minmax(0, 1fr)); /* ✅ 3 per row */
+    gap: 22px;
+    align-items: stretch;
 }
 
-/* Generic Card */
-.card {
-    background: white;
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+/* Tablets */
+@media (max-width: 1050px) {
+    .home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-.card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+/* Mobile */
+@media (max-width: 700px) {
+    .home-grid { grid-template-columns: 1fr; }
 }
 
-/* Buttons in card */
-.card .btn-outline {
-    display: inline-block;
-    padding: 10px 18px;
-    margin-top: 12px;
-    border: 1px solid #2575fc;
-    border-radius: 12px;
-    text-decoration: none;
-    color: #2575fc;
-    font-weight: 600;
-    transition: background 0.2s ease, color 0.2s ease;
-}
-
-.card .btn-outline:hover {
-    background: #2575fc;
-    color: white;
-}
-
-/* ===================== FEATURED SNEAKER CARD ===================== */
+/* ===================== PRODUCT CARD (ECOMMERCE) ===================== */
 .card.featured {
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid #ececec;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    min-height: 480px; /* ensures equal minimum height */
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-height: 520px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 12px 26px rgba(0,0,0,0.08);
 }
 
 .card.featured:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+    transform: translateY(-7px);
+    border-color: rgba(214, 51, 255, 0.40);
+    box-shadow: 0 22px 46px rgba(0,0,0,0.12);
 }
 
+/* Image area */
 .image-container {
-    width: 100%;
-    padding: 16px;
+    height: 320px;
+    background: radial-gradient(circle at top, #f7f7ff, #f2f2f2);
+    padding: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #f8f8f8;
 }
 
 .image-container img {
-    max-width: 80%;
-    max-height: 350px;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
-    transition: transform 0.3s ease;
+    transition: transform 0.25s ease;
+    filter: drop-shadow(0 10px 18px rgba(0,0,0,0.18));
 }
 
 .card.featured:hover .image-container img {
-    transform: scale(1.05);
+    transform: scale(1.06);
 }
 
+/* Content */
 .card-info {
+    padding: 18px 18px 20px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    flex: 1; /* stretch to fill card */
-    padding: 16px 24px;
-    text-align: center;
+    gap: 10px;
+    flex: 1;
+    text-align: left;
 }
 
 .card-info h3 {
-    font-weight: 700;
-    margin-bottom: 8px;
+    font-size: 1.05rem;
+    font-weight: 900;
+    margin: 0;
+    color: #111;
+    letter-spacing: 0.2px;
 }
 
-/* ===================== DESCRIPTION (TINYMCE SAFE HTML) ===================== */
+/* TinyMCE-safe clamp */
 .card-info .description {
-    max-height: 4.2em; /* approx 3 lines */
+    color: #444;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    margin: 0;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* ✅ 3 lines */
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-align: left; /* for better readability */
 }
 
-.card-info .description-inner {
-    display: block;
+.card-info .description p,
+.card-info .description em,
+.card-info .description strong {
+    margin: 0; /* remove TinyMCE default spacing */
 }
 
-.card-info .description-inner p,
-.card-info .description-inner em,
-.card-info .description-inner strong {
-    margin: 0; /* remove TinyMCE default margins */
+/* CTA Button */
+.card-info .btn-outline {
+    margin-top: auto; /* ✅ stick button to bottom */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(214, 51, 255, 0.40);
+    background: linear-gradient(135deg, rgba(214, 51, 255, 0.12), rgba(37, 117, 252, 0.10));
+    color: #141414;
+    font-weight: 900;
+    text-decoration: none;
+    transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
-/* ===================== RESPONSIVE ===================== */
+.card-info .btn-outline:hover {
+    transform: translateY(-1px);
+    border-color: rgba(214, 51, 255, 0.70);
+    background: linear-gradient(135deg, rgba(214, 51, 255, 0.18), rgba(37, 117, 252, 0.16));
+}
+
+/* ===================== RESPONSIVE HERO ===================== */
 @media (max-width: 900px) {
-    .home-hero {
-        padding: 60px 20px;
-    }
-
-    .hero-title {
-        font-size: 2.2rem;
-    }
-
-    .hero-subtitle {
-        font-size: 1rem;
-    }
-
-    .home-grid {
-        grid-template-columns: 1fr;
-    }
+    .home-hero { padding: 64px 22px; }
+    .hero-title { font-size: 2.4rem; }
+    .hero-subtitle { font-size: 1rem; }
 }

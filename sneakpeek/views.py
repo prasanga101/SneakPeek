@@ -172,9 +172,14 @@ def submit_bid(request, sneaker_id):
 
 # Create your views here.
 def home(request):
-    sneak = Sneaker.objects.filter(is_featured=True).order_by('-id')
+    sneakers = Sneaker.objects.filter(is_featured=True).order_by('-id')
+
+    # Case-insensitive match for status
+    approved_products = ProductRequest.objects.filter(status__iexact="Approved").order_by('-id')
+
     context = {
-        'sneakers': sneak,
+        'sneakers': sneakers,
+        'approved_products': approved_products,
         'is_logged_in': request.session.get('is_logged_in', False),
         'role': request.session.get('role')
     }
@@ -391,9 +396,5 @@ def sell(request):
     return render(request, 'sell.html', {'title': 'SneakPeek Sell'})
 
 def marketplace(request):
-     context = {
-        'is_logged_in': request.session.get('is_logged_in')
-    }
-   
-
-     return render(request, 'marketplace.html', context)    
+    products = ProductRequest.objects.filter(status__iexact="Approved").order_by("-id")
+    return render(request, "sneakpeek/marketplace.html", {"products": products})

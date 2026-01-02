@@ -1,6 +1,13 @@
-from django.apps import AppConfig
+# from django.apps import AppConfig
 
+# class SneakpeekConfig(AppConfig):
+#     default_auto_field = 'django.db.models.BigAutoField'
+#     name = 'sneakpeek'
+from django.apps import AppConfig
 
 class SneakpeekConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'sneakpeek'
+
+    def ready(self):
+        import sneakpeek.signals

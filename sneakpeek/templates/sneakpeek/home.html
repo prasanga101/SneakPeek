@@ -4,38 +4,61 @@
 
 <!-- HERO SECTION -->
 <section class="home-hero">
-    <div class="hero-content">
-        <h1 class="hero-title">SneakPeek Marketplace</h1>
-        <p class="hero-subtitle">Bid on verified sneakers. Sell with confidence. Win drops in real-time.</p>
-        <div class="hero-actions">
-            <input class="hero-search" type="search" placeholder="Search Nike, Jordan, Adidas…">
-            <a href="{% url 'SneakPeek-marketplace' %}" class="btn btn-primary">Browse Marketplace</a>
-        </div>
+  <div class="hero-content">
+    <h1 class="hero-title">SneakPeek Marketplace</h1>
+    <p class="hero-subtitle">Bid on verified sneakers. Sell with confidence. Win drops in real-time.</p>
+    <div class="hero-actions">
+      <input class="hero-search" type="search" placeholder="Search Nike, Jordan, Adidas…">
+      <a href="{% url 'SneakPeek-marketplace' %}" class="btn btn-primary">Browse Marketplace</a>
     </div>
+  </div>
 </section>
 
 <!-- FEATURED SNEAKERS GRID -->
 <section class="home-grid">
-    {% for sneaker in sneakers %}
+  {% for sneaker in sneakers %}
     <div class="card featured">
-        <div class="image-container">
-            <img src="{{ sneaker.image.url }}" alt="{{ sneaker.name }}">
-        </div>
+      <div class="image-container">
+        <img src="{{ sneaker.image.url }}" alt="{{ sneaker.name }}">
+      </div>
 
-        <div class="card-info">
-            <h3>{{ sneaker.name }}</h3>
-            <p class="description">{{ sneaker.description|safe }}</p>
-            {# Redirect to login if not logged in, else to bid page #}
-            <a href="{% if request.session.is_logged_in %}{% url 'place_bid' sneaker.id %}{% else %}/Login{% endif %}" 
-               class="btn-outline">
-               Place Bid
-            </a>
+      <div class="card-info">
+        <h3>{{ sneaker.name }}</h3>
+        <p class="description">{{ sneaker.description|striptags|truncatechars:60 }}</p>
+
+        <a href="{% if request.session.is_logged_in %}{% url 'place_bid' sneaker.id %}{% else %}/Login{% endif %}"
+           class="btn-outline">
+          Place Bid
+        </a>
+      </div>
     </div>
-    {% empty %}
-    <p>No sneakers available right now.</p> 
-    {% endfor %}
+  {% empty %}
+    <p>No featured sneakers right now.</p>
+  {% endfor %}
 </section>
 
+<!-- APPROVED PRODUCTS GRID (from ProductRequest) -->
+<h2 style="margin-top:40px;">✅ Newly Approved Drops</h2>
+<section class="home-grid">
+  {% for p in approved_products %}
+    <div class="card featured">
+      <div class="image-container">
+        <img src="{{ p.image.url }}" alt="{{ p.name }}">
+      </div>
 
+      <div class="card-info">
+        <h3>{{ p.name }}</h3>
+        <p class="description">{{ p.description|striptags|truncatechars:60 }}</p>
+
+        <a href="{% if request.session.is_logged_in %}{% url 'SneakPeek-marketplace' %}{% else %}/Login{% endif %}"
+           class="btn-outline">
+          View in Marketplace
+        </a>
+      </div>
+    </div>
+  {% empty %}
+    <p>No approved drops yet.</p>
+  {% endfor %}
+</section>
 
 {% endblock %}
