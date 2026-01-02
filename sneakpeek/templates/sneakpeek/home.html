@@ -16,24 +16,29 @@
 
 <!-- FEATURED SNEAKERS GRID -->
 <section class="home-grid">
-    {% for sneaker in sneakers %}
-    <div class="card featured">
-        <div class="image-container">
-            <img src="{{ sneaker.image.url }}" alt="{{ sneaker.name }}">
-        </div>
+    {% for item in items %}
+<div class="card featured">
+    <div class="image-container">
+        <img src="{{ item.image.url }}" alt="{{ item.name }}">
+    </div>
+    <div class="card-info">
+        <h3>{{ item.name }}</h3>
+        <p class="description">{{ item.description|safe }}</p>
 
-        <div class="card-info">
-            <h3>{{ sneaker.name }}</h3>
-            <p class="description">{{ sneaker.description|safe }}</p>
-            {# Redirect to login if not logged in, else to bid page #}
-            <a href="{% if request.session.is_logged_in %}{% url 'place_bid' sneaker.id %}{% else %}/Login{% endif %}" 
+        {% if item.item_type == "sneaker" %}
+            <a href="{% if is_logged_in %}{% url 'place_bid' item.id %}{% else %}/Login{% endif %}" 
                class="btn-outline">
                Place Bid
             </a>
+        {% else %}
+            <span class="badge badge-success">Approved</span>
+        {% endif %}
     </div>
-    {% empty %}
-    <p>No sneakers available right now.</p> 
-    {% endfor %}
+</div>
+{% empty %}
+<p>No items available right now.</p>
+{% endfor %}
+
 </section>
 
 

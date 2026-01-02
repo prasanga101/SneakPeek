@@ -1,6 +1,9 @@
 from django.urls import path
 from . import views
+from django.conf.urls.static import static
 #current directory bata view import garcha
+
+
 urlpatterns = [
     path('',views.home , name ='SneakPeek-home'),
     # path('bid/<int:sneaker_id>/', views.place_bid, name='place_bid'),

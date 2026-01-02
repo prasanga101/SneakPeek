@@ -9,6 +9,22 @@ import base64
 import uuid
 from django.core.files.base import ContentFile
 from django_esewa import EsewaPayment
+from django.core.files.base import ContentFile
+import os
+from django.core.files import File
+from itertools import chain
+
+# def home(request):
+#     sneakers = Sneaker.objects.filter(is_featured=True)
+#     approved_requests = ProductRequest.objects.filter(status='approved')
+
+#     all_items = list(chain(sneakers, approved_requests))
+
+#     return render(request, 'home.html', {
+#         'items': all_items,
+#         'is_logged_in': request.session.get('is_logged_in', False)
+#     })
+
 
 def seller_products(request):
     if not request.session.get('is_logged_in') or request.session.get('role') != 'seller':
@@ -43,24 +59,44 @@ def payment_failure(request):
 
 
 def add_product_request(request):
-    if not request.session.get('is_logged_in') or request.session.get('role') != 'seller':
+    if request.session.get('role') != 'seller':
         return redirect('/Login')
 
-    seller_id = request.session.get('seller_id')
-    seller = get_object_or_404(SignUpSeller, id=seller_id)
+    seller = get_object_or_404(SignUpSeller, id=request.session.get('seller_id'))
 
     if request.method == "POST":
         ProductRequest.objects.create(
             seller=seller,
-            name=request.POST.get("name"),
-            description=request.POST.get("description"),
-            image=request.FILES.get("image"),
-            end_time=request.POST.get("end_time"),
+            name=request.POST['name'],
+            description=request.POST['description'],
+            image=request.FILES['image'],
+            end_time=request.POST['end_time'],
         )
         messages.success(request, "Product sent for admin approval.")
         return redirect('/')
 
+    # ✅ Handle GET requests properly
     return render(request, 'add_product.html')
+
+
+def approve_products(self, request, queryset):
+    for req in queryset.filter(status='pending'):
+        if req.image:
+            req.image.open()
+            img_file = File(req.image)  # copy the uploaded file
+        else:
+            img_file = None
+
+        Sneaker.objects.create(
+            name=req.name,
+            description=req.description,
+            image=img_file,
+            end_time=req.end_time,
+            is_featured=True
+        )
+
+        req.status = 'approved'
+        req.save()
 
 
 def bidding_result(request, sneaker_id):
@@ -105,54 +141,137 @@ def bidding_result(request, sneaker_id):
     })
 
 
+# def place_bid_view(request, sneaker_id):
+#     if not request.session.get('is_logged_in'):
+#         messages.warning(request, "You must log in to place a bid.")
+#         return redirect('/Login')
+
+#     sneaker = get_object_or_404(Sneaker, id=sneaker_id)
+#     bids = sneaker.bids.order_by('-amount')
+
+#     # Pass the logged-in user's email to template
+#     current_user_email = request.session.get('signup_email', '')
+
+#     context = {
+#         'sneaker': sneaker,
+#         'bids': bids,
+#         'is_logged_in': True,
+#         'current_user_email': current_user_email  # <-- Pass to template
+#     }
+#     return render(request, 'place_bid.html', context)
 def place_bid_view(request, sneaker_id):
     if not request.session.get('is_logged_in'):
         messages.warning(request, "You must log in to place a bid.")
         return redirect('/Login')
 
-    sneaker = get_object_or_404(Sneaker, id=sneaker_id)
-    bids = sneaker.bids.order_by('-amount')
+    # Try to get the sneaker first
+    sneaker = Sneaker.objects.filter(id=sneaker_id).first()
 
-    # Pass the logged-in user's email to template
+    # If not found in Sneaker, check ProductRequest (approved only)
+    if not sneaker:
+        pr = ProductRequest.objects.filter(id=sneaker_id, status='approved').first()
+        if not pr:
+            return HttpResponse("Item not found.", status=404)
+
+        # Dynamically treat ProductRequest as Sneaker
+        class TempSneaker:
+            id = pr.id
+            name = pr.name
+            description = pr.description
+            image = pr.image
+            end_time = pr.end_time  # ✅ add this
+
+            bids = Bid.objects.none()  # initially empty
+
+        sneaker = TempSneaker()
+
+    bids = Bid.objects.filter(sneaker_id=sneaker.id).order_by('-amount')
     current_user_email = request.session.get('signup_email', '')
 
     context = {
         'sneaker': sneaker,
         'bids': bids,
         'is_logged_in': True,
-        'current_user_email': current_user_email  # <-- Pass to template
+        'current_user_email': current_user_email
     }
     return render(request, 'place_bid.html', context)
+
+
+# def submit_bid(request, sneaker_id):
+#     if request.method != "POST":
+#         return redirect('place_bid', sneaker_id=sneaker_id)
+
+#     # Check if user is logged in
+#     is_logged_in = request.session.get('is_logged_in', False)
+#     user_role = request.session.get('role', None)
+#     buyer_email = request.session.get('signup_email', None)
+
+#     if not is_logged_in or user_role != 'buyer':
+#         mess='You must be logged in as a buyer to place a bid.'
+#         request.session['mess_seller']=mess
+#         return redirect('/Login')
+
+#     sneaker = get_object_or_404(Sneaker, id=sneaker_id)
+#     print(sneaker)
+
+#     # Safely get the buyer
+#     try:
+#         buyer = get_object_or_404(SignUpBuyer, Email=buyer_email)
+#     except Exception:
+#         # messages.error(request, "Buyer account not found. Please log in again.")
+#         # mes='Buyer account not found. Please log in again.'
+#         request.session['mes']='Buyer account not found. Please log in again.'
+#         # request.session.flush()
+#         return redirect('/Login')
+
+#     # Get bid amount and validate
+#     amount_str = request.POST.get("amount")
+#     try:
+#         amount = float(amount_str)
+#         if amount <= 0:
+#             raise ValueError
+#     except (ValueError, TypeError):
+#         messages.error(request, "Please enter a valid positive bid amount.")
+#         return redirect('place_bid', sneaker_id=sneaker_id)
+
+#     # Create bid
+#     Bid.objects.create(sneaker=sneaker, buyer=buyer, amount=amount)
+#     messages.success(request, f"Your bid of Rs {amount} has been placed successfully!")
+
+#     return redirect('place_bid', sneaker_id=sneaker_id)
 
 
 def submit_bid(request, sneaker_id):
     if request.method != "POST":
         return redirect('place_bid', sneaker_id=sneaker_id)
 
-    # Check if user is logged in
     is_logged_in = request.session.get('is_logged_in', False)
     user_role = request.session.get('role', None)
     buyer_email = request.session.get('signup_email', None)
 
     if not is_logged_in or user_role != 'buyer':
-        mess='You must be logged in as a buyer to place a bid.'
-        request.session['mess_seller']=mess
+        request.session['mess_seller'] = 'You must be logged in as a buyer to place a bid.'
         return redirect('/Login')
 
-    sneaker = get_object_or_404(Sneaker, id=sneaker_id)
-    print(sneaker)
+    # Get the sneaker or approved product request
+    sneaker = Sneaker.objects.filter(id=sneaker_id).first()
+    if not sneaker:
+        pr = ProductRequest.objects.filter(id=sneaker_id, status='approved').first()
+        if not pr:
+            return HttpResponse("Item not found.", status=404)
+        # Treat ProductRequest like Sneaker
+        sneaker, is_temp = pr, True
+    else:
+        is_temp = False
 
-    # Safely get the buyer
+    # Get buyer
     try:
-        buyer = get_object_or_404(SignUpBuyer, Email=buyer_email)
-    except Exception:
-        # messages.error(request, "Buyer account not found. Please log in again.")
-        # mes='Buyer account not found. Please log in again.'
-        request.session['mes']='Buyer account not found. Please log in again.'
-        # request.session.flush()
+        buyer = SignUpBuyer.objects.get(Email=buyer_email)
+    except SignUpBuyer.DoesNotExist:
+        request.session['mes'] = 'Buyer account not found. Please log in again.'
         return redirect('/Login')
 
-    # Get bid amount and validate
+    # Get bid amount
     amount_str = request.POST.get("amount")
     try:
         amount = float(amount_str)
@@ -163,7 +282,8 @@ def submit_bid(request, sneaker_id):
         return redirect('place_bid', sneaker_id=sneaker_id)
 
     # Create bid
-    Bid.objects.create(sneaker=sneaker, buyer=buyer, amount=amount)
+    Bid.objects.create(sneaker_id=sneaker.id, buyer=buyer, amount=amount)
+
     messages.success(request, f"Your bid of Rs {amount} has been placed successfully!")
 
     return redirect('place_bid', sneaker_id=sneaker_id)
@@ -171,14 +291,52 @@ def submit_bid(request, sneaker_id):
 
 
 # Create your views here.
+# def home(request):
+#     sneak = Sneaker.objects.filter(is_featured=True).order_by('-id')
+#     sneakk=ProductRequest.objects.filter(status="approved").order_by('-id')
+#     context = {
+#         'sneakers': sneak,
+#         'sneaker_requests': sneakk,
+#         'is_logged_in': request.session.get('is_logged_in', False),
+#         'role': request.session.get('role')
+#     }
+#     return render(request, 'home.html', context)
+
+
+# def home(request):
+#     sneakers = Sneaker.objects.filter(is_featured=True)
+#     approved_requests = ProductRequest.objects.filter(status='approved')
+
+#     all_items = list(chain(sneakers, approved_requests))
+
+#     return render(request, 'home.html', {
+#         'items': all_items,
+#         'is_logged_in': request.session.get('is_logged_in', False)
+#     })
+
 def home(request):
-    sneak = Sneaker.objects.filter(is_featured=True).order_by('-id')
-    context = {
-        'sneakers': sneak,
+    sneakers = Sneaker.objects.filter(is_featured=True).order_by('-id')
+    approved_requests = ProductRequest.objects.filter(status='approved').order_by('-id')
+    for sneaker in sneakers:
+        sneaker.item_type = 'sneaker'  # to identify in template
+    # Treat approved requests as sneakers for display
+    for r in approved_requests:
+        r.item_type = 'sneaker'  # now they also get the Place Bid button
+
+    all_items = list(chain(sneakers, approved_requests))
+
+    return render(request, 'home.html', {
+        'items': all_items,
         'is_logged_in': request.session.get('is_logged_in', False),
         'role': request.session.get('role')
-    }
-    return render(request, 'home.html', context)
+    })
+# def home(request):
+#     sneakers = Sneaker.objects.filter(is_featured=True).order_by('-id')
+#     return render(request, 'home.html', {
+#         'sneakers': sneakers,
+#         'is_logged_in': request.session.get('is_logged_in', False)
+#     })
+
 
 
 # def place_bid(request, sneaker_id):
