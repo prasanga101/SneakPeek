@@ -59,6 +59,18 @@
 .back-link:hover {
     background: #333;
 }
+#payBtn {
+    background: green;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+#payBtn:hover {
+    background: darkgreen;
+}
 </style>
 
 <div class="result-page">
@@ -69,14 +81,51 @@
         <p>🏆 Winner: <span>{{ highest_bid.buyer.FName }}</span></p>
         <p>💰 Amount: <span>Rs {{ highest_bid.amount }}</span></p>
 
-        {% if payment_form %}
-<form action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST">
-    {{ payment_form|safe }}
-    <button type="submit" class="back-link" style="background:green;">
-        Pay with eSewa
-    </button>
-</form>
-{% endif %}
+        {% if show_payment %}
+            <p style="color: #ff9800; margin: 20px 0;">⏳ Payment Pending - Please complete within 1 minute</p>
+            <p style="color: #666; font-size: 0.9rem;">⚠️ If not paid, the bid will be reassigned to the next highest bidder</p>
+            <p style="background: #e3f2fd; padding: 10px; border-radius: 6px; margin: 15px 0; font-size: 0.9rem;">
+                💵 <strong>Payment Amount:</strong> ${{ highest_bid.amount }} USD (Stripe payment gateway)
+            </p>
+            <button id="payBtn">Pay Now</button>
+
+            <script src="https://js.stripe.com/v3/"></script>
+            <script>
+            const stripe = Stripe("{{ stripe_key }}");
+
+            document.getElementById("payBtn").addEventListener("click", async () => {
+                try {
+                    const response = await fetch("/create-checkout-session/{{ highest_bid.id }}/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        alert("Error: " + data.error);
+                    } else {
+                        const result = await stripe.redirectToCheckout({ sessionId: data.id });
+                        if (result.error) {
+                            alert(result.error.message);
+                        }
+                    }
+                } catch (error) {
+                    alert("Error: " + error.message);
+                }
+            });
+            </script>
+        {% else %}
+            <p style="color: #4caf50; margin: 20px 0; font-size: 1.1rem;">✅ Payment Status: <strong>COMPLETED</strong></p>
+        {% endif %}
+
 
     </div>
     {% else %}

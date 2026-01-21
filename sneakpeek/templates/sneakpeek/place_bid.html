@@ -138,7 +138,7 @@
             {% for bid in bids %}
                 <li>
                     <span>{{ bid.buyer.FName }}</span>
-                    <span>Rs {{ bid.amount }}</span>
+                    <span>$ {{ bid.amount }}</span>
                 </li>
             {% empty %}
                 <li>No bids yet. Be the first!</li>
@@ -183,18 +183,13 @@ const timer = setInterval(() => {
             bidButton.innerText = "Bidding Closed";
         }
 
-        // Show winner
+        // Show message and redirect to results
         if (winnerData) {
-            bidsList.innerHTML = `<li class="winner">🏆 Winner: ${winnerData.buyer} — Rs ${winnerData.amount}</li>`;
-
-            // Redirect winner (if current user is the winner)
-           {% if current_user_email == bids.0.buyer.Email %}
-
-                setTimeout(() => {
-                    window.location.href = "{% url 'bidding_result' sneaker.id %}";
-                }, 3000); // wait 3 seconds before redirect
-            {% endif %}
-
+            bidsList.innerHTML = `<li class="winner">⏳ Bidding ended! Determining winner... Redirecting to results page in 3 seconds.</li>`;
+            // Redirect to bidding_result page after 3 seconds
+            setTimeout(() => {
+                window.location.href = "{% url 'bidding_result' sneaker.id %}";
+            }, 3000);
         } else {
             bidsList.innerHTML = `<li class="winner">No bids were placed for this sneaker.</li>`;
         }

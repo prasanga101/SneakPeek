@@ -36,18 +36,20 @@ class Sneaker(models.Model):
 
 
 class Bid(models.Model):
-    sneaker = models.ForeignKey(Sneaker, on_delete=models.CASCADE, related_name='bids')
+    sneaker = models.ForeignKey(Sneaker, on_delete=models.CASCADE, related_name='bids', null=True, blank=True)
+    product_request = models.ForeignKey('ProductRequest', on_delete=models.CASCADE, related_name='bids', null=True, blank=True)
     #CASCADE = delete everything that depends on it
 
 # In simple words:
 
-# 🧨 “If the parent is deleted, delete the children automatically”
+# 🧨 "If the parent is deleted, delete the children automatically"
     buyer = models.ForeignKey(SignUpBuyer, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.buyer.FName} - {self.amount} on {self.sneaker.name}"
+        item_name = self.sneaker.name if self.sneaker else self.product_request.name
+        return f"{self.buyer.FName} - {self.amount} on {item_name}"
     
 
 class Payment(models.Model):
@@ -55,6 +57,7 @@ class Payment(models.Model):
     amount = models.FloatField()
     product_id = models.CharField(max_length=100)
     status = models.CharField(max_length=20, default="PENDING")
+    created_at = models.DateTimeField(auto_now_add=True)  # Track when payment was created
 
 
 class ProductRequest(models.Model):

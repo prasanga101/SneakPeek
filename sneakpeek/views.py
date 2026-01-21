@@ -4,27 +4,86 @@ from django.contrib.auth.hashers import make_password,check_password
 from django.shortcuts import render, redirect ,HttpResponse
 from .models import SignUpBuyer, SignUpSeller,Sneaker, Bid,Payment,ProductRequest
 from django.contrib import messages
-
+from django.conf import settings
 import base64
 import uuid
 from django.core.files.base import ContentFile
-from django_esewa import EsewaPayment
 from django.core.files.base import ContentFile
 import os
 from django.core.files import File
 from itertools import chain
+import stripe
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
+from datetime import timedelta
 
-# def home(request):
-#     sneakers = Sneaker.objects.filter(is_featured=True)
-#     approved_requests = ProductRequest.objects.filter(status='approved')
 
-#     all_items = list(chain(sneakers, approved_requests))
+@csrf_exempt
+def store_payment_id(request, payment_id):
+    """Store payment ID in session for later retrieval"""
+    if request.method == "POST":
+        request.session['current_payment_id'] = payment_id
+        request.session.save()  # Explicitly save session
+        return JsonResponse({"status": "ok"})
+    return JsonResponse({"error": "Method not allowed"}, status=405)
 
-#     return render(request, 'home.html', {
-#         'items': all_items,
-#         'is_logged_in': request.session.get('is_logged_in', False)
-#     })
-
+@csrf_exempt
+def create_checkout_session(request, bid_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+    
+    try:
+        bid = get_object_or_404(Bid, id=bid_id)
+        
+        # Determine which item this bid belongs to
+        if bid.sneaker:
+            item_id = bid.sneaker.id
+            item_name = bid.sneaker.name
+            item_image = bid.sneaker.image
+        else:
+            item_id = bid.product_request.id
+            item_name = bid.product_request.name
+            item_image = bid.product_request.image
+        
+        # Store both bid_id and item_id in session for payment success lookup
+        request.session['current_bid_id'] = bid_id
+        request.session['current_item_id'] = item_id
+        request.session.save()
+        
+        # Build product images list - only include valid URLs
+        images = []
+        if item_image:
+            try:
+                images = [request.build_absolute_uri(item_image.url)]
+            except:
+                images = []
+        
+        # Create the Stripe session
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            mode="payment",
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "usd",
+                        "product_data": {
+                            "name": f"Bid Payment for {item_name}",
+                            "images": images,
+                        },
+                        "unit_amount": int(bid.amount * 100),
+                    },
+                    "quantity": 1,
+                }
+            ],
+            success_url=request.build_absolute_uri("/payment/success/"),
+            cancel_url=request.build_absolute_uri("/payment/failure/"),
+        )
+        
+        return JsonResponse({"id": session.id})
+    
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
 
 def seller_products(request):
     if not request.session.get('is_logged_in') or request.session.get('role') != 'seller':
@@ -42,15 +101,57 @@ def seller_products(request):
 
 
 def payment_success(request):
-    transaction_uuid = request.GET.get("transaction_uuid")
-    total_amount = request.GET.get("total_amount")
-
+    buyer_email = request.session.get('signup_email')
+    payment_id = request.session.get('current_payment_id')
+    bid_id = request.session.get('current_bid_id')
+    item_id = request.session.get('current_item_id')
+    
+    if not buyer_email:
+        return HttpResponse("User not logged in", status=401)
+    
     try:
-        payment = Payment.objects.get(product_id=transaction_uuid)
+        payment = None
+        
+        # Method 1: Look up by bid_id and item_id (most reliable - exact match)
+        if bid_id and item_id:
+            payment = Payment.objects.filter(
+                product_id=f"SNK-{item_id}-BID-{bid_id}",
+                status="PENDING"
+            ).first()
+        
+        # Method 2: Look up by payment_id stored in session
+        if not payment and payment_id:
+            payment = Payment.objects.filter(
+                id=payment_id,
+                status="PENDING"
+            ).first()
+        
+        # Method 3: Fallback - get most recent pending payment for buyer
+        if not payment:
+            payment = Payment.objects.filter(
+                email=buyer_email,
+                status="PENDING"
+            ).order_by('-id').first()
+        
+        if not payment:
+            return render(request, "payment_failure.html", {
+                "error": "Payment record not found. Please contact support."
+            })
+        
+        # Mark as successful
         payment.status = "SUCCESS"
         payment.save()
-    except Payment.DoesNotExist:
-        return HttpResponse("Payment record not found")
+        
+        # Clear session data
+        for key in ['current_payment_id', 'current_bid_id', 'current_item_id']:
+            if key in request.session:
+                del request.session[key]
+        request.session.save()
+                
+    except Exception as e:
+        return render(request, "payment_failure.html", {
+            "error": f"Error processing payment: {str(e)}"
+        })
 
     return render(request, "payment_success.html")
 
@@ -99,46 +200,132 @@ def approve_products(self, request, queryset):
         req.save()
 
 
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+def get_valid_highest_bid(item, sneaker_id):
+    """
+    Get the highest bid that hasn't timed out waiting for payment.
+    Item can be either Sneaker or ProductRequest.
+    sneaker_id: The ID of the item (Sneaker or ProductRequest) for exact payment lookup.
+    """
+    # Get bids for this item
+    if isinstance(item, Sneaker):
+        all_bids = item.bids.order_by('-amount')
+    else:
+        # It's a ProductRequest
+        all_bids = Bid.objects.filter(product_request=item).order_by('-amount')
+    
+    timeout_minutes = 1
+    
+    for bid in all_bids:
+        # Check if there's a payment record for this bid using exact product_id match
+        payment = Payment.objects.filter(
+            product_id=f"SNK-{sneaker_id}-BID-{bid.id}"
+        ).first()
+        
+        if not payment:
+            # No payment record yet - this bid is valid
+            return bid, None
+        
+        # Check if payment is still PENDING and not timed out
+        if payment.status == "PENDING":
+            time_since_creation = timezone.now() - payment.created_at
+            if time_since_creation < timedelta(minutes=timeout_minutes):
+                # Payment is pending and within timeout - this is the current winner
+                return bid, payment
+            else:
+                # Payment timed out - mark as FAILED and continue to next bidder
+                payment.status = "FAILED"
+                payment.save()
+                continue
+        
+        elif payment.status == "SUCCESS":
+            # Payment completed - this is the winner
+            return bid, payment
+        
+        else:
+            # Payment failed - try next bidder
+            continue
+    
+    # No valid bids found
+    return None, None
+
+
 def bidding_result(request, sneaker_id):
-    sneaker = get_object_or_404(Sneaker, id=sneaker_id)
-    highest_bid = sneaker.bids.order_by('-amount').first()
+    # 1️⃣ Get the sneaker or product request
+    sneaker = Sneaker.objects.filter(id=sneaker_id).first()
+    product_request = None
+    item = None
+    
+    if not sneaker:
+        # Check if it's a ProductRequest
+        product_request = ProductRequest.objects.filter(id=sneaker_id, status='approved').first()
+        if not product_request:
+            return HttpResponse("Item not found.", status=404)
+        item = product_request
+        # Create a temporary object to display product request like sneaker
+        class TempSneaker:
+            id = product_request.id
+            name = product_request.name
+            description = product_request.description
+            image = product_request.image
+            end_time = product_request.end_time
+        sneaker = TempSneaker()
+    else:
+        item = sneaker
 
-    payment_form = None
+    # 2️⃣ Get the highest valid bid (considering timeouts)
+    highest_bid, payment = get_valid_highest_bid(item, sneaker_id)
 
-    if highest_bid:
-        # Only winner can pay
-        if request.session.get('signup_email') == highest_bid.buyer.Email:
-
-            transaction_uuid = f"SNK-{sneaker.id}-{uuid.uuid4().hex[:8]}"
-
-            # Save payment record
-            Payment.objects.create(
+    # 3️⃣ Check if user is logged in and is the winner
+    buyer_email = request.session.get('signup_email')
+    
+    if not highest_bid:
+        # No bids placed yet
+        return render(request, "bidding_result.html", {
+            "sneaker": sneaker,
+            "highest_bid": None,
+            "show_payment": False,
+            "payment_id": None,
+            "stripe_key": settings.STRIPE_PUBLIC_KEY,
+        })
+    
+    # Only the winner can view this page
+    if not buyer_email or buyer_email != highest_bid.buyer.Email:
+        return HttpResponse("Access denied. Only the bidding winner can view this page.", status=403)
+    
+    # 4️⃣ User is the winner - prepare payment info
+    show_payment = False
+    payment_id = None
+    
+    if not payment:
+        # Create a consistent, deterministic transaction ID (not random)
+        # This ensures the same bid always has the same payment record
+        transaction_uuid = f"SNK-{sneaker_id}-BID-{highest_bid.id}"
+        
+        # Check if a payment with this exact ID already exists
+        payment = Payment.objects.filter(product_id=transaction_uuid).first()
+        if not payment:
+            payment = Payment.objects.create(
                 email=highest_bid.buyer.Email,
                 amount=float(highest_bid.amount),
                 product_id=transaction_uuid,
                 status="PENDING"
             )
+    
+    # Only show payment button if status is PENDING (not SUCCESS or FAILED)
+    show_payment = (payment.status == "PENDING")
+    payment_id = payment.id
 
-            payment = EsewaPayment(
-                product_code="EPAYTEST",   # test merchant
-                success_url="http://127.0.0.1:8000/payment/success/",
-                failure_url="http://127.0.0.1:8000/payment/failure/",
-                amount=float(highest_bid.amount),
-                tax_amount=0,
-                total_amount=float(highest_bid.amount),
-                product_service_charge=0,
-                product_delivery_charge=0,
-                transaction_uuid=transaction_uuid,
-            )
-
-            payment.create_signature()
-            payment_form = payment.generate_form()
-
+    # 5️⃣ Render template with Stripe
     return render(request, "bidding_result.html", {
         "sneaker": sneaker,
         "highest_bid": highest_bid,
-        "payment_form": payment_form
+        "show_payment": show_payment,
+        "payment_id": payment_id,
+        "stripe_key": settings.STRIPE_PUBLIC_KEY,
     })
+
 
 
 # def place_bid_view(request, sneaker_id):
@@ -166,26 +353,38 @@ def place_bid_view(request, sneaker_id):
 
     # Try to get the sneaker first
     sneaker = Sneaker.objects.filter(id=sneaker_id).first()
+    product_request = None
 
     # If not found in Sneaker, check ProductRequest (approved only)
     if not sneaker:
-        pr = ProductRequest.objects.filter(id=sneaker_id, status='approved').first()
-        if not pr:
+        product_request = ProductRequest.objects.filter(id=sneaker_id, status='approved').first()
+        if not product_request:
             return HttpResponse("Item not found.", status=404)
 
-        # Dynamically treat ProductRequest as Sneaker
+        # Dynamically treat ProductRequest as Sneaker for display
         class TempSneaker:
-            id = pr.id
-            name = pr.name
-            description = pr.description
-            image = pr.image
-            end_time = pr.end_time  # ✅ add this
+            id = product_request.id
+            name = product_request.name
+            description = product_request.description
+            image = product_request.image
+            end_time = product_request.end_time
 
-            bids = Bid.objects.none()  # initially empty
+            @property
+            def bids(self):
+                # Get bids related to this product_request
+                return Bid.objects.filter(product_request_id=self.id).order_by('-amount')
 
         sneaker = TempSneaker()
+    else:
+        # Get bids for this sneaker
+        bids = sneaker.bids.order_by('-amount')
 
-    bids = Bid.objects.filter(sneaker_id=sneaker.id).order_by('-amount')
+    # Get bids (from either sneaker or product_request)
+    if product_request:
+        bids = Bid.objects.filter(product_request_id=product_request.id).order_by('-amount')
+    else:
+        bids = Bid.objects.filter(sneaker_id=sneaker.id).order_by('-amount')
+
     current_user_email = request.session.get('signup_email', '')
 
     context = {
@@ -253,16 +452,15 @@ def submit_bid(request, sneaker_id):
         request.session['mess_seller'] = 'You must be logged in as a buyer to place a bid.'
         return redirect('/Login')
 
-    # Get the sneaker or approved product request
+    # Try to get Sneaker first
     sneaker = Sneaker.objects.filter(id=sneaker_id).first()
+    product_request = None
+    
     if not sneaker:
-        pr = ProductRequest.objects.filter(id=sneaker_id, status='approved').first()
-        if not pr:
+        # Check if it's an approved ProductRequest
+        product_request = ProductRequest.objects.filter(id=sneaker_id, status='approved').first()
+        if not product_request:
             return HttpResponse("Item not found.", status=404)
-        # Treat ProductRequest like Sneaker
-        sneaker, is_temp = pr, True
-    else:
-        is_temp = False
 
     # Get buyer
     try:
@@ -281,8 +479,11 @@ def submit_bid(request, sneaker_id):
         messages.error(request, "Please enter a valid positive bid amount.")
         return redirect('place_bid', sneaker_id=sneaker_id)
 
-    # Create bid
-    Bid.objects.create(sneaker_id=sneaker.id, buyer=buyer, amount=amount)
+    # Create bid - set either sneaker or product_request
+    if sneaker:
+        Bid.objects.create(sneaker=sneaker, buyer=buyer, amount=amount)
+    else:
+        Bid.objects.create(product_request=product_request, buyer=buyer, amount=amount)
 
     messages.success(request, f"Your bid of Rs {amount} has been placed successfully!")
 
@@ -554,4 +755,4 @@ def marketplace(request):
     }
    
 
-     return render(request, 'marketplace.html', context)    
+     return render(request, 'marketplace.html', context)
